@@ -1,60 +1,70 @@
+const express = require('express');
+const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes - verify JWT
-const protect = async (req, res, next) => {
+// @desc    Authenticate user & get token
+// @route   POST /api/auth/login
+// @access  Public
+router.post('/login', async (req, res) => {
   try {
-    let token;
+    const { email, password } = req.body;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
-
-    if (!token) {
-      return res.status(401).json({
+    // Check if email and password are provided
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
-        message: 'Access denied. No token provided.'
+        message: 'Please provide email and password'
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'taluka_secret_key');
-    const user = await User.findById(decoded.id);
+    // Check for user
+    const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Token is invalid. User not found.'
+        message: 'Invalid credentials'
       });
     }
 
-    if (!user.isActive) {
+    // Check if password matches
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Your account has been deactivated.'
+        message: 'Invalid credentials'
       });
     }
 
-    req.user = user;
-    next();
+    // Create token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'taluka_secret_key',
+      { expiresIn: '24h' }
+    );
+
+    // Update last login
+    user.lastLogin = Date.now();
+    await user.save();
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
-    return res.status(401).json({
+    res.status(500).json({
       success: false,
-      message: 'Token is invalid or expired.'
+      message: error.message
     });
   }
-};
+});
 
-// Role-based access control
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Role '${req.user.role}' is not authorized to access this resource.`
-      });
-    }
-    next();
-  };
-};
-
-module.exports = { protect, authorize };
+module.exports = router;

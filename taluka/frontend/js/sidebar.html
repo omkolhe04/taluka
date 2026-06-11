@@ -1,0 +1,76 @@
+<!-- Shared Sidebar Template - included in each page -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🏛️</div>
+    <div class="sidebar-logo-text">
+      <h3>Smart Taluka<br>Governance</h3>
+      <span>Haveli Taluka</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main Menu</div>
+
+    <a class="nav-item" href="/pages/dashboard.html" data-page="dashboard.html">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+
+    <div class="nav-section-label" data-roles="BDO,DeptHead">Management</div>
+
+    <a class="nav-item" href="/pages/departments.html" data-page="departments.html" data-roles="BDO,DeptHead">
+      <span class="nav-icon">🏢</span> Departments
+    </a>
+
+    <a class="nav-item" href="/pages/employees.html" data-page="employees.html" data-roles="BDO,DeptHead">
+      <span class="nav-icon">👥</span> Employees
+    </a>
+
+    <div class="nav-section-label">Operations</div>
+
+    <a class="nav-item" href="/pages/revenue.html" data-page="revenue.html" data-roles="BDO,DeptHead,Employee">
+      <span class="nav-icon">💰</span> Revenue
+    </a>
+
+    <a class="nav-item" href="/pages/kyc.html" data-page="kyc.html" data-roles="BDO,DeptHead,Employee">
+      <span class="nav-icon">🧾</span> KYC Records
+    </a>
+
+    <a class="nav-item" href="/pages/verification.html" data-page="verification.html" data-roles="BDO,DeptHead,Employee">
+      <span class="nav-icon">📍</span> Field Verification
+    </a>
+
+    <a class="nav-item" href="/pages/bills.html" data-page="bills.html" data-roles="BDO,DeptHead,Employee">
+      <span class="nav-icon">🧾</span> Bill Verification
+    </a>
+
+    <div class="nav-section-label" data-roles="BDO,DeptHead,DataEntry">Data</div>
+
+    <a class="nav-item" href="/pages/excel.html" data-page="excel.html" data-roles="BDO,DeptHead,DataEntry">
+      <span class="nav-icon">📂</span> Excel Upload
+    </a>
+
+    <div class="nav-section-label" data-roles="BDO,DeptHead">Reports</div>
+
+    <a class="nav-item" href="/pages/analytics.html" data-page="analytics.html" data-roles="BDO,DeptHead">
+      <span class="nav-icon">📈</span> Analytics
+    </a>
+
+    <div class="nav-section-label">System</div>
+
+    <a class="nav-item" href="/pages/notifications.html" data-page="notifications.html">
+      <span class="nav-icon">🔔</span> Notifications
+      <span class="nav-badge hidden" id="notif-badge"></span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-user-avatar">U</div>
+      <div class="sidebar-user-info">
+        <div class="user-name" id="sidebar-user-name">Loading...</div>
+        <div class="user-role" id="sidebar-user-role">-</div>
+      </div>
+      <button onclick="auth.logout()" title="Logout" style="background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.5);">🚪</button>
+    </div>
+  </div>
+</aside>

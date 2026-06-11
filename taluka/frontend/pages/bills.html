@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bill Verification — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --gov-navy:    #003087;
+  --gov-saffron: #FF6200;
+  --gov-green:   #138808;
+  --gov-white:   #FFFFFF;
+  --gov-light:   #EEF2F8;
+  --gov-border:  #C8D6E8;
+  --gov-text:    #1A2840;
+  --gov-muted:   #5A6A82;
+  --gov-accent:  #0057A8;
+  --shadow-sm:   0 1px 4px rgba(0,48,135,.10);
+}
+
+/* ── Stats ── */
+.bill-stats {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+@media(max-width:900px){ .bill-stats{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:520px){ .bill-stats{ grid-template-columns:1fr; } }
+
+.bs-card {
+  background: var(--gov-white);
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: .35rem;
+  position: relative; overflow: hidden;
+}
+.bs-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
+.bs-card.navy::before   { background: var(--gov-navy); }
+.bs-card.red::before    { background: #CC1B1B; }
+.bs-card.green::before  { background: var(--gov-green); }
+.bs-card.saffron::before{ background: var(--gov-saffron); }
+
+.bs-icon {
+  width: 38px; height: 38px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--gov-border); background: var(--gov-light);
+}
+.bs-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bsi-blue   { background: #E3F2FD; } .bsi-blue svg   { stroke: #0D47A1; }
+.bsi-red    { background: #FDECEA; } .bsi-red svg    { stroke: #B71C1C; }
+.bsi-green  { background: #E6F4EA; } .bsi-green svg  { stroke: #1B5E20; }
+.bsi-orange { background: #FFF3EC; } .bsi-orange svg { stroke: #CC4E00; }
+
+.bs-label { font-size: .72rem; font-weight: 700; color: var(--gov-muted); text-transform: uppercase; letter-spacing: .04em; }
+.bs-value { font-size: 1.75rem; font-weight: 800; color: var(--gov-navy); line-height: 1; }
+
+/* ── Split panel ── */
+.bill-split {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.25rem; align-items: start;
+}
+@media(max-width:900px){ .bill-split{ grid-template-columns:1fr; } }
+
+/* ── Left: bill list ── */
+.bill-list-panel {
+  background: var(--gov-white);
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.blp-head {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .6rem 1.1rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.blp-head h2 { font-size: .84rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: .04em; }
+.blp-filter select {
+  padding: .28rem .6rem;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 3px;
+  font-size: .75rem;
+  font-family: 'Noto Sans', sans-serif;
+  background: rgba(255,255,255,.15);
+  color: #fff; outline: none; cursor: pointer;
+}
+.blp-filter select option { background: var(--gov-navy); color: #fff; }
+
+.bill-item {
+  padding: .85rem 1.1rem;
+  border-bottom: 1px solid #EDF0F5;
+  cursor: pointer;
+  transition: background .14s;
+  border-left: 4px solid transparent;
+}
+.bill-item:last-child { border-bottom: none; }
+.bill-item:hover { background: var(--gov-light); }
+.bill-item.active { background: #EEF4FF; border-left-color: var(--gov-navy); }
+
+.bi-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: .25rem; }
+.bi-id   { font-size: .855rem; font-weight: 700; color: var(--gov-navy); }
+.risk-badge { padding: .18rem .55rem; border-radius: 3px; font-size: .7rem; font-weight: 700; border: 1px solid; }
+.rb-high { background: #FDECEA; color: #B71C1C; border-color: #FFCDD2; }
+.rb-low  { background: #E6F4EA; color: #1B5E20; border-color: #A8D5AF; }
+.rb-med  { background: #FFF8E1; color: #7B5600; border-color: #FFD54F; }
+.bi-cat  { font-size: .79rem; color: var(--gov-muted); margin-bottom: .12rem; }
+.bi-loc  { font-size: .73rem; color: #94A3B8; }
+
+/* ── Right: detail panel ── */
+.bill-detail-panel {
+  background: var(--gov-white);
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.bdp-empty {
+  text-align: center; padding: 4rem; color: var(--gov-muted);
+}
+.bdp-empty svg { width: 56px; height: 56px; stroke: var(--gov-border); fill: none; stroke-width: 1.5; margin: 0 auto 1rem; display: block; }
+.bdp-empty p { font-size: .875rem; }
+
+.bdp-head {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .75rem 1.2rem;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.bdp-head-title { font-size: .92rem; font-weight: 700; color: #fff; margin-bottom: .1rem; }
+.bdp-head-meta  { font-size: .73rem; color: rgba(255,255,255,.72); }
+
+.bdp-body { padding: 1.2rem 1.3rem; }
+
+/* Detail grid */
+.bd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.1rem; }
+.bd-item { background: var(--gov-light); border: 1px solid var(--gov-border); border-radius: 4px; padding: .65rem .9rem; }
+.bd-item label { font-size: .67rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--gov-muted); display: block; margin-bottom: .18rem; }
+.bd-item span  { font-size: .875rem; font-weight: 600; color: var(--gov-navy); }
+.bd-item.full  { grid-column: 1/-1; }
+
+/* Risk banner */
+.risk-banner {
+  border-radius: 4px; padding: .9rem 1.1rem;
+  margin-bottom: 1.1rem;
+  display: flex; align-items: flex-start; gap: .75rem;
+  border-left: 4px solid;
+}
+.risk-banner.high { background: #FDECEA; border: 1px solid #FFCDD2; border-left-color: #CC1B1B; }
+.risk-banner.low  { background: #E6F4EA; border: 1px solid #A8D5AF;  border-left-color: #138808; }
+.rb-icon  { font-size: 1.1rem; flex-shrink: 0; margin-top: .05rem; }
+.rb-title { font-size: .855rem; font-weight: 700; color: var(--gov-text); margin-bottom: .15rem; }
+.rb-sub   { font-size: .74rem; color: var(--gov-muted); }
+.rb-desc  { font-size: .79rem; color: var(--gov-muted); margin-top: .3rem; }
+
+/* Action buttons */
+.bill-actions { display: grid; grid-template-columns: 1fr 1fr auto; gap: .75rem; margin-bottom: 1.25rem; }
+@media(max-width:600px){ .bill-actions{ grid-template-columns:1fr; } }
+.btn-approve-bill {
+  padding: .65rem; background: var(--gov-green); color: #fff;
+  border: none; border-radius: 4px; font-size: .84rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: background .18s; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-approve-bill:hover { background: #0F6B0F; }
+.btn-reject-bill {
+  padding: .65rem; background: #CC1B1B; color: #fff;
+  border: none; border-radius: 4px; font-size: .84rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: background .18s; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-reject-bill:hover  { background: #A51515; }
+.btn-request-bill {
+  padding: .65rem 1.1rem; background: var(--gov-light); color: var(--gov-navy);
+  border: 1.5px solid var(--gov-border); border-radius: 4px; font-size: .84rem;
+  font-weight: 600; cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: all .15s;
+}
+.btn-request-bill:hover { background: var(--gov-navy); color: #fff; border-color: var(--gov-navy); }
+
+/* Chart */
+.chart-section {
+  border-top: 2px solid var(--gov-border);
+  padding: 0;
+  overflow: hidden;
+}
+.chart-section-hdr {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .5rem 1.1rem;
+}
+.chart-section-hdr h3 { font-size: .82rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 .08rem; }
+.chart-section-hdr p  { font-size: .71rem; color: rgba(255,255,255,.72); margin: 0; }
+.chart-wrap { height: 200px; position: relative; padding: 1rem 1.2rem; }
+
+/* Submit form */
+.submit-form-wrap { padding: 1.1rem 1.3rem; }
+.sf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.1rem; margin-bottom: .9rem; }
+@media(max-width:600px){ .sf-grid{ grid-template-columns:1fr; } }
+.sf-group { display: flex; flex-direction: column; gap: .3rem; }
+.sf-group label {
+  font-size: .75rem; font-weight: 700; color: var(--gov-navy);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.sf-input, .sf-select {
+  padding: .6rem .85rem;
+  border: 1.5px solid var(--gov-border);
+  border-radius: 4px;
+  font-size: .875rem; font-family: 'Noto Sans', sans-serif;
+  color: var(--gov-text); outline: none;
+  background: var(--gov-light);
+  transition: border-color .18s;
+}
+.sf-input:focus, .sf-select:focus { border-color: var(--gov-navy); background: #fff; }
+
+.suspicious-warn {
+  background: #FDECEA; border: 1px solid #FFCDD2;
+  border-left: 4px solid #CC1B1B;
+  border-radius: 4px; padding: .6rem .85rem;
+  font-size: .82rem; color: #B71C1C; font-weight: 600;
+  display: none; margin-bottom: .85rem;
+}
+.btn-submit-bill {
+  padding: .62rem 1.4rem; background: var(--gov-navy); color: #fff;
+  border: none; border-radius: 4px; font-size: .855rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  text-transform: uppercase; letter-spacing: .03em;
+  transition: background .18s;
+}
+.btn-submit-bill:hover { background: var(--gov-accent); }
+
+/* Submit new bill button at bottom of list */
+.blp-foot {
+  padding: .75rem 1.1rem;
+  border-top: 1px solid var(--gov-border);
+  background: var(--gov-light);
+}
+.btn-new-bill {
+  width: 100%; padding: .6rem;
+  background: var(--gov-navy); color: #fff;
+  border: none; border-radius: 4px;
+  font-size: .83rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: background .18s; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-new-bill:hover { background: var(--gov-accent); }
+
+/* Close button in submit form header */
+.btn-close-form {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 3px; padding: .25rem .55rem;
+  font-size: .8rem; cursor: pointer;
+  color: #fff; font-family: 'Noto Sans', sans-serif;
+}
+.btn-close-form:hover { background: rgba(255,255,255,.28); }
+
+/* File input */
+input[type="file"].sf-input {
+  padding: .48rem .75rem;
+  font-size: .8rem;
+}
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Stat cards — all IDs preserved -->
+    <div class="bill-stats">
+      <div class="bs-card navy">
+        <div class="bs-icon bsi-blue"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="bs-label">Total Bills</div>
+        <div class="bs-value" id="statTotal">—</div>
+      </div>
+      <div class="bs-card red">
+        <div class="bs-icon bsi-red"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="bs-label">Flagged Bills</div>
+        <div class="bs-value" id="statFlagged">—</div>
+      </div>
+      <div class="bs-card green">
+        <div class="bs-icon bsi-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="bs-label">Approved</div>
+        <div class="bs-value" id="statApproved">—</div>
+      </div>
+      <div class="bs-card saffron">
+        <div class="bs-icon bsi-orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="bs-label">Under Review</div>
+        <div class="bs-value" id="statReview">—</div>
+      </div>
+    </div>
+
+    <!-- Split panel -->
+    <div class="bill-split">
+
+      <!-- LEFT: Bill list -->
+      <div class="bill-list-panel">
+        <div class="blp-head">
+          <h2>Bills for Verification</h2>
+          <div class="blp-filter">
+            <select onchange="filterBills(this.value)">
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="suspicious">Flagged</option>
+            </select>
+          </div>
+        </div>
+        <div id="billList">
+          <div style="padding:2rem;text-align:center;color:var(--gov-muted)">⏳ Loading…</div>
+        </div>
+        <div class="blp-foot">
+          <button class="btn-new-bill" onclick="showSubmitForm()">+ Submit New Bill</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Detail panel -->
+      <div class="bill-detail-panel" id="detailPanel">
+
+        <!-- Empty state -->
+        <div class="bdp-empty" id="emptyDetail">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><polyline points="10 9 9 9 8 9"/></svg>
+          <p>Select a bill to view details</p>
+        </div>
+
+        <!-- Bill detail view -->
+        <div id="billDetail" style="display:none">
+          <div class="bdp-head">
+            <div>
+              <div class="bdp-head-title" id="bd_title">—</div>
+              <div class="bdp-head-meta"  id="bd_meta">—</div>
+            </div>
+            <span class="risk-badge" id="bd_riskBadge">—</span>
+          </div>
+          <div class="bdp-body">
+            <div class="risk-banner" id="bd_riskBanner">
+              <span class="rb-icon" id="bd_riskIcon">⚠️</span>
+              <div>
+                <div class="rb-title" id="bd_riskTitle">—</div>
+                <div class="rb-sub"   id="bd_riskSub">AI-powered fraud detection analysis</div>
+                <div class="rb-desc"  id="bd_riskDesc">—</div>
+              </div>
+            </div>
+            <div class="bd-grid" id="bd_grid"></div>
+            <div class="bill-actions" id="bd_actions">
+              <button class="btn-approve-bill" onclick="reviewBill('approve')">✅ Approve Bill</button>
+              <button class="btn-reject-bill"  onclick="reviewBill('reject')">✗ Reject Bill</button>
+              <button class="btn-request-bill" onclick="reviewBill('request')">Request Info</button>
+            </div>
+          </div>
+          <div class="chart-section">
+            <div class="chart-section-hdr">
+              <h3>📈 Predicted Fund Engine</h3>
+              <p>Historical cost trends and predictions</p>
+            </div>
+            <div class="chart-wrap"><canvas id="fundChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Submit form -->
+        <div id="submitForm" style="display:none">
+          <div class="bdp-head">
+            <div class="bdp-head-title">Submit New Bill</div>
+            <button class="btn-close-form" onclick="hideSubmitForm()">✕ Close</button>
+          </div>
+          <div class="submit-form-wrap">
+            <div class="sf-grid">
+              <div class="sf-group">
+                <label>Bill Title *</label>
+                <input type="text" class="sf-input" id="b_title" placeholder="e.g. Water Infrastructure">
+              </div>
+              <div class="sf-group">
+                <label>Category</label>
+                <select class="sf-select" id="b_category" onchange="updateMarketPrice()">
+                  <option value="General">General (₹2,000)</option>
+                  <option value="Stationery">Stationery (₹500)</option>
+                  <option value="Transport">Transport (₹3,000)</option>
+                  <option value="Equipment">Equipment (₹15,000)</option>
+                  <option value="Construction">Construction (₹5,000)</option>
+                </select>
+              </div>
+              <div class="sf-group">
+                <label>Bill Amount (₹)</label>
+                <input type="number" class="sf-input" id="b_price" placeholder="Actual amount" oninput="checkSuspicious()">
+              </div>
+              <div class="sf-group">
+                <label>Market Price (₹)</label>
+                <input type="number" class="sf-input" id="b_mkt" placeholder="Reference price" oninput="checkSuspicious()">
+              </div>
+              <div class="sf-group">
+                <label>Vendor Name</label>
+                <input type="text" class="sf-input" id="b_vendor" placeholder="Supplier/Vendor">
+              </div>
+              <div class="sf-group">
+                <label>Upload Bill Image</label>
+                <input type="file" class="sf-input" id="b_image" accept="image/*">
+              </div>
+            </div>
+            <div class="suspicious-warn" id="suspWarn">⚠️ This bill exceeds market price by more than 20% and will be flagged as SUSPICIOUS.</div>
+            <button class="btn-submit-bill" onclick="submitBill()">📤 Submit Bill</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════ ORIGINAL JS — ZERO CHANGES ════ -->
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('bills');
+const user = getUser();
+const MARKET_PRICES = { Construction:5000, Equipment:15000, Stationery:500, Transport:3000, Food:1000, General:2000 };
+let allBills = [], filteredBills = [], selectedBillId = null, fundChart = null;
+
+async function loadBills() {
+  const data = await apiGet('/bills');
+  if (data?.data) { allBills = data.data; filteredBills = allBills; renderStats(); renderBillList(); }
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent    = allBills.length;
+  document.getElementById('statFlagged').textContent  = allBills.filter(b => b.isSuspicious).length;
+  document.getElementById('statApproved').textContent = allBills.filter(b => b.status === 'approved').length;
+  document.getElementById('statReview').textContent   = allBills.filter(b => b.status === 'pending' || b.status === 'suspicious').length;
+}
+
+function filterBills(status) {
+  filteredBills = status ? allBills.filter(b => b.status === status) : allBills;
+  renderBillList();
+}
+
+function renderBillList() {
+  if (!filteredBills.length) {
+    document.getElementById('billList').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#94A3B8;font-size:.83rem">No bills found</div>';
+    return;
+  }
+  document.getElementById('billList').innerHTML = filteredBills.map((b, idx) => {
+    const riskLvl = b.isSuspicious ? 'high' : 'low';
+    const riskCls = b.isSuspicious ? 'rb-high' : 'rb-low';
+    const billNum = `BILL-${new Date(b.createdAt||Date.now()).getFullYear()}-${String(idx+1).padStart(3,'0')}`;
+    return `
+    <div class="bill-item ${selectedBillId === b._id ? 'active' : ''}" onclick="selectBill('${b._id}')">
+      <div class="bi-row1">
+        <span class="bi-id">${billNum}</span>
+        <span class="risk-badge ${riskCls}">${riskLvl} risk</span>
+      </div>
+      <div class="bi-cat">${b.category || 'General'}</div>
+      <div class="bi-loc">${b.vendor || 'Village Project'}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectBill(id) {
+  selectedBillId = id;
+  const b = allBills.find(x => x._id === id);
+  if (!b) return;
+  hideSubmitForm();
+  renderBillList(); // refresh active state
+
+  const isHighRisk = b.isSuspicious;
+  const billNum    = `BILL-${new Date(b.createdAt||Date.now()).getFullYear()}-001`;
+
+  document.getElementById('emptyDetail').style.display  = 'none';
+  document.getElementById('billDetail').style.display   = '';
+  document.getElementById('submitForm').style.display   = 'none';
+
+  document.getElementById('bd_title').textContent     = b.title;
+  document.getElementById('bd_meta').textContent      = `${b.category || 'General'} · ${b.vendor || 'Unknown Vendor'}`;
+  document.getElementById('bd_riskBadge').textContent = isHighRisk ? 'high risk' : 'low risk';
+  document.getElementById('bd_riskBadge').className   = `risk-badge ${isHighRisk ? 'rb-high' : 'rb-low'}`;
+
+  const banner = document.getElementById('bd_riskBanner');
+  banner.className = `risk-banner ${isHighRisk ? 'high' : 'low'}`;
+  document.getElementById('bd_riskIcon').textContent = isHighRisk ? '⚠️' : '✅';
+  document.getElementById('bd_riskTitle').textContent = isHighRisk ? 'Risk Score: HIGH' : 'Risk Score: LOW';
+  document.getElementById('bd_riskDesc').textContent  = isHighRisk
+    ? 'This bill has been flagged for manual review due to significant price deviations from market rates.'
+    : 'This bill appears within expected market price ranges.';
+
+  document.getElementById('bd_grid').innerHTML = `
+    <div class="bd-item"><label>Bill Amount</label><span>${formatCurrency(b.price)}</span></div>
+    <div class="bd-item"><label>Market Price</label><span>${formatCurrency(b.marketPrice)}</span></div>
+    <div class="bd-item"><label>Category</label><span>${b.category || '—'}</span></div>
+    <div class="bd-item"><label>Vendor</label><span>${b.vendor || '—'}</span></div>
+    <div class="bd-item"><label>Status</label><span style="text-transform:capitalize">${b.status}</span></div>
+    <div class="bd-item"><label>Submitted</label><span>${b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'}</span></div>`;
+
+  const canAct = (user?.role === 'BDO' || user?.role === 'DeptHead') && (b.status === 'pending' || b.status === 'suspicious');
+  document.getElementById('bd_actions').style.display = canAct ? 'grid' : 'none';
+
+  renderFundChart(b);
+}
+
+function renderFundChart(bill) {
+  const ctx = document.getElementById('fundChart');
+  if (fundChart) fundChart.destroy();
+  const base = bill.marketPrice || 500000;
+  const labels = ['Jan','Feb','Mar','Apr'];
+  const submitted = [base*0.9, base*1.05, bill.price || base*1.1, base*1.2];
+  const predicted = [base*0.88, base, base*0.96, base*1.05];
+
+  fundChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Submitted', data: submitted, borderColor:'#3B82F6', backgroundColor:'rgba(59,130,246,.08)', tension:.4, pointBackgroundColor:'#3B82F6', fill:true },
+        { label:'Predicted', data: predicted, borderColor:'#10B981', backgroundColor:'rgba(16,185,129,.04)', tension:.4, borderDash:[5,5], pointBackgroundColor:'#EF4444', fill:true }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString('en-IN')}` } } },
+      scales:{ y:{ beginAtZero:true, grid:{ color:'#F1F5F9' } }, x:{ grid:{ display:false } } }
+    }
+  });
+}
+
+async function reviewBill(action) {
+  if (!selectedBillId) return;
+  const remarks = action === 'reject' ? (prompt('Reason for rejection:') || 'Rejected') : action === 'request' ? 'Additional information requested' : 'Approved';
+  const endpoint = action === 'request' ? 'reject' : action;
+  const data = await apiPut(`/bills/${selectedBillId}/${endpoint}`, { remarks });
+  if (data?.success) { showToast(data.message, 'success'); loadBills(); document.getElementById('emptyDetail').style.display = ''; document.getElementById('billDetail').style.display = 'none'; selectedBillId = null; }
+}
+
+function showSubmitForm() {
+  document.getElementById('emptyDetail').style.display = 'none';
+  document.getElementById('billDetail').style.display  = 'none';
+  document.getElementById('submitForm').style.display  = '';
+  selectedBillId = null;
+  renderBillList();
+}
+function hideSubmitForm() {
+  document.getElementById('submitForm').style.display  = 'none';
+  if (!selectedBillId) {
+    document.getElementById('emptyDetail').style.display = '';
+    document.getElementById('billDetail').style.display  = 'none';
+  }
+}
+
+function updateMarketPrice() {
+  const cat = document.getElementById('b_category').value;
+  document.getElementById('b_mkt').value = MARKET_PRICES[cat] || 2000;
+  checkSuspicious();
+}
+function checkSuspicious() {
+  const p = parseFloat(document.getElementById('b_price').value) || 0;
+  const m = parseFloat(document.getElementById('b_mkt').value)   || 0;
+  document.getElementById('suspWarn').style.display = (m > 0 && p > m*1.2) ? 'block' : 'none';
+}
+
+async function submitBill() {
+  const title = document.getElementById('b_title').value.trim();
+  if (!title) { showToast('Bill title required', 'error'); return; }
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('category', document.getElementById('b_category').value);
+  formData.append('price', document.getElementById('b_price').value);
+  formData.append('marketPrice', document.getElementById('b_mkt').value || MARKET_PRICES[document.getElementById('b_category').value]);
+  formData.append('vendor', document.getElementById('b_vendor').value);
+  const img = document.getElementById('b_image').files[0];
+  if (img) formData.append('image', img);
+  const data = await apiUpload('/bills', formData);
+  if (data?.success) { showToast(data.data?.isSuspicious ? '⚠️ Bill flagged as suspicious' : 'Bill submitted!', data.data?.isSuspicious ? 'error' : 'success'); hideSubmitForm(); loadBills(); }
+  else showToast(data?.message || 'Error', 'error');
+}
+
+updateMarketPrice();
+loadBills();
+</script>
+</body>
+</html>

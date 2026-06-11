@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload History — Taluka Gov</title>
+<link rel="stylesheet" href="../css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Stats bar ── */
+.hist-stats {
+  display: flex;
+  gap: .85rem;
+  margin-bottom: 1.3rem;
+  flex-wrap: wrap;
+}
+.hs-card {
+  flex: 1;
+  min-width: 110px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+  box-shadow: var(--shadow);
+}
+.hs-val { font-size: 1.2rem; font-weight: 700; }
+.hs-lbl { font-size: .7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-top: .1rem; }
+
+/* ── Search + sort bar ── */
+.toolbar {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+.toolbar-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  position: relative;
+}
+.toolbar-search input {
+  width: 100%;
+  padding: .55rem .9rem .55rem 2.2rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .875rem;
+  font-family: inherit;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") .7rem center no-repeat;
+}
+.toolbar-search input:focus { outline: none; border-color: var(--primary); }
+.toolbar select {
+  padding: .48rem .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .83rem;
+  font-family: inherit;
+  background: #fff;
+}
+.result-count {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ── File cards grid ── */
+.file-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.file-card {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow .18s, transform .18s;
+}
+.file-card:hover {
+  box-shadow: 0 8px 24px rgba(99,102,241,.13);
+  transform: translateY(-2px);
+}
+.fc-accent {
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+.fc-body {
+  padding: 1.1rem 1.2rem .9rem;
+}
+.fc-name {
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .65rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  word-break: break-word;
+}
+.fc-name-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .05rem; }
+.fc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .45rem;
+  margin-bottom: .9rem;
+}
+.fc-meta-item {
+  background: var(--bg);
+  border-radius: 7px;
+  padding: .45rem .65rem;
+}
+.fc-meta-item .lbl {
+  font-size: .67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: .04em;
+  display: block;
+  margin-bottom: .1rem;
+}
+.fc-meta-item .val {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.fc-meta-item .val.green { color: var(--success); }
+.fc-meta-item .val.orange{ color: var(--warning); }
+.fc-footer {
+  display: flex;
+  gap: .6rem;
+  justify-content: flex-end;
+  padding-top: .7rem;
+  border-top: 1px solid var(--bg);
+}
+.btn-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .38rem .85rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .18s;
+}
+.btn-preview:hover { background: var(--primary-dark); }
+.btn-del-hist {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .38rem .75rem;
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 7px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .18s;
+}
+.btn-del-hist:hover { background: var(--danger); color: #fff; }
+
+/* ── Preview modal ── */
+.preview-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.52);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.preview-overlay.open { display: flex; }
+.preview-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  overflow: hidden;
+  animation: pmIn .2s ease;
+}
+@keyframes pmIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.pm-head {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  padding: 1.1rem 1.5rem;
+  color: #fff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.pm-head-info h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .2rem; word-break: break-word; }
+.pm-head-info p  { font-size: .8rem; opacity: .85; margin: 0; }
+.pm-close {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pm-close:hover { background: rgba(255,255,255,.35); }
+.pm-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+}
+.pm-note {
+  font-size: .8rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-radius: 7px;
+  padding: .5rem .85rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid var(--primary);
+}
+.pm-foot {
+  padding: .85rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ── */
+.empty-hist {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--text-muted);
+  grid-column: 1 / -1;
+}
+.empty-hist .eh-icon { font-size: 3rem; margin-bottom: .75rem; }
+.empty-hist h3 { font-size: 1rem; font-weight: 600; margin-bottom: .3rem; color: var(--text); }
+.empty-hist p  { font-size: .875rem; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+    <div id="pageHeader"></div>
+
+    <!-- Stats bar -->
+    <div class="hist-stats" id="histStats">
+      <div class="hs-card"><div class="hs-val" id="statFiles">—</div><div class="hs-lbl">📁 Total Files</div></div>
+      <div class="hs-card"><div class="hs-val" id="statRows">—</div><div class="hs-lbl">📝 Total Rows</div></div>
+      <div class="hs-card"><div class="hs-val" id="statImported" style="color:var(--success)">—</div><div class="hs-lbl">✅ Imported</div></div>
+      <div class="hs-card"><div class="hs-val" id="statSkipped" style="color:var(--warning)">—</div><div class="hs-lbl">⚠️ Skipped</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-search">
+        <input type="text" id="searchInput" placeholder="Search file name…" oninput="applyFilter()">
+      </div>
+      <select id="sortSelect" onchange="applyFilter()">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="name">Name A–Z</option>
+        <option value="rows">Most Rows</option>
+      </select>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="file-cards-grid" id="fileCardsGrid">
+      <div style="color:var(--text-muted);font-size:.875rem;padding:.5rem;grid-column:1/-1">⏳ Loading…</div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     Preview Modal
+═══════════════════════════════════════ -->
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-modal">
+    <div class="pm-head">
+      <div class="pm-head-info">
+        <h3 id="pmFileName">—</h3>
+        <p id="pmFileMeta">—</p>
+      </div>
+      <button class="pm-close" onclick="closePreview()">✕</button>
+    </div>
+    <div class="pm-body">
+      <p class="pm-note">
+        📌 Showing stored preview (first 10 rows). This is the data as it was at upload time.
+      </p>
+      <div id="pmTableWrap" style="overflow-x:auto;"></div>
+    </div>
+    <div class="pm-foot">
+      <button class="btn-secondary" onclick="closePreview()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+// ── Guard: DataEntry only ──────────────────────────────────────
+const currentUser = getUser();
+if (!currentUser || currentUser.role !== 'DataEntry') {
+  window.location.href = 'dashboard.html';
+}
+
+initLayout('upload-history');
+document.getElementById('pageHeader').innerHTML = createPageWrapper(
+  '🕓 Upload History',
+  `<button class="btn-primary" onclick="window.location.href='excel.html'">📂 Upload New File</button>`
+);
+
+const MONTHS = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── State ──────────────────────────────────────────────────────
+let allHistory    = [];
+let filteredHist  = [];
+
+// ── Load ───────────────────────────────────────────────────────
+async function loadHistory() {
+  const data = await apiGet('/excel/history');
+  if (!data || !data.success) {
+    document.getElementById('fileCardsGrid').innerHTML =
+      `<div class="empty-hist"><div class="eh-icon">❌</div><h3>Failed to load history</h3><p>Please refresh the page.</p></div>`;
+    return;
+  }
+
+  allHistory = data.data;
+  updateStats(allHistory);
+  applyFilter();
+}
+
+// ── Stats ──────────────────────────────────────────────────────
+function updateStats(history) {
+  document.getElementById('statFiles').textContent    = history.length;
+  document.getElementById('statRows').textContent     = history.reduce((s,h) => s + (h.totalRows    || 0), 0).toLocaleString('en-IN');
+  document.getElementById('statImported').textContent = history.reduce((s,h) => s + (h.importedRows || 0), 0).toLocaleString('en-IN');
+  document.getElementById('statSkipped').textContent  = history.reduce((s,h) => s + (h.skippedRows  || 0), 0).toLocaleString('en-IN');
+}
+
+// ── Filter + Sort ──────────────────────────────────────────────
+function applyFilter() {
+  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+  const sort = document.getElementById('sortSelect').value;
+
+  filteredHist = q
+    ? allHistory.filter(h => h.fileName.toLowerCase().includes(q))
+    : [...allHistory];
+
+  // Sort
+  if (sort === 'newest')  filteredHist.sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  if (sort === 'oldest')  filteredHist.sort((a,b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
+  if (sort === 'name')    filteredHist.sort((a,b) => a.fileName.localeCompare(b.fileName));
+  if (sort === 'rows')    filteredHist.sort((a,b) => (b.totalRows||0) - (a.totalRows||0));
+
+  document.getElementById('resultCount').textContent =
+    `${filteredHist.length} of ${allHistory.length} file${allHistory.length !== 1 ? 's' : ''}`;
+
+  renderCards(filteredHist);
+}
+
+// ── Render Cards ───────────────────────────────────────────────
+function renderCards(history) {
+  const grid = document.getElementById('fileCardsGrid');
+
+  if (!history.length) {
+    grid.innerHTML = `
+      <div class="empty-hist">
+        <div class="eh-icon">📭</div>
+        <h3>${allHistory.length ? 'No files match your search' : 'No uploads yet'}</h3>
+        <p>${allHistory.length ? 'Try a different search term.' : 'Upload your first Excel file to see history here.'}</p>
+        ${!allHistory.length ? `<button class="btn-primary" style="margin-top:1rem" onclick="window.location.href='excel.html'">📂 Upload Excel</button>` : ''}
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = history.map(h => {
+    const uploadDate = new Date(h.uploadedAt);
+    const dateStr    = uploadDate.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr    = uploadDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    const skipped    = h.skippedRows || 0;
+    const imported   = h.importedRows || 0;
+
+    // Villages in preview
+    const villages   = [...new Set((h.previewData || []).map(r => r.villageName).filter(Boolean))];
+    const villageStr = villages.length ? villages.slice(0,3).join(', ') + (villages.length > 3 ? '…' : '') : '—';
+
+    return `
+    <div class="file-card">
+      <div class="fc-accent"></div>
+      <div class="fc-body">
+        <div class="fc-name">
+          <span class="fc-name-icon">📊</span>
+          <span>${escHtml(h.fileName)}</span>
+        </div>
+        <div class="fc-meta">
+          <div class="fc-meta-item">
+            <span class="lbl">📅 Uploaded</span>
+            <span class="val">${dateStr} ${timeStr}</span>
+          </div>
+          <div class="fc-meta-item">
+            <span class="lbl">📝 Total Rows</span>
+            <span class="val">${(h.totalRows || 0).toLocaleString('en-IN')}</span>
+          </div>
+          <div class="fc-meta-item">
+            <span class="lbl">✅ Imported</span>
+            <span class="val green">${imported.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="fc-meta-item">
+            <span class="lbl">⚠️ Skipped</span>
+            <span class="val ${skipped > 0 ? 'orange' : ''}">${skipped}</span>
+          </div>
+        </div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.85rem">
+          🏘 Villages: <strong style="text-transform:capitalize;color:var(--text)">${escHtml(villageStr)}</strong>
+        </div>
+        <div class="fc-footer">
+          <button class="btn-del-hist" onclick="deleteHistory('${h._id}')">🗑 Delete</button>
+          <button class="btn-preview" onclick="openPreview('${h._id}')">👁 Preview</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Preview Modal ──────────────────────────────────────────────
+function openPreview(id) {
+  const h = allHistory.find(x => x._id === id);
+  if (!h) return;
+
+  const uploadDate = new Date(h.uploadedAt).toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+
+  document.getElementById('pmFileName').textContent =
+    `📊 ${h.fileName}`;
+  document.getElementById('pmFileMeta').textContent =
+    `Uploaded on ${uploadDate} · ${h.totalRows} rows · ${h.importedRows} imported`;
+
+  const rows = h.previewData || [];
+  if (!rows.length) {
+    document.getElementById('pmTableWrap').innerHTML =
+      `<p style="color:var(--text-muted);text-align:center;padding:1.5rem">No preview data stored for this file.</p>`;
+  } else {
+    const headers = ['Type', 'Village', 'Amount', 'Year', 'Month', 'Date'];
+    const tableRows = rows.map(r => `
+      <tr>
+        <td style="text-transform:capitalize"><span class="type-tag">${escHtml(r.type || '—')}</span></td>
+        <td style="text-transform:capitalize;font-weight:600">${escHtml(r.villageName || '—')}</td>
+        <td><strong>${formatCurrency(r.amount || 0)}</strong></td>
+        <td>${r.year || '—'}</td>
+        <td>${MONTHS[r.month] || r.month || '—'}</td>
+        <td>${r.date || '—'}</td>
+      </tr>`);
+
+    document.getElementById('pmTableWrap').innerHTML = `
+      <table class="data-table">
+        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${tableRows.join('')}</tbody>
+      </table>
+      ${h.totalRows > 10
+        ? `<p style="font-size:.78rem;color:var(--text-muted);margin-top:.75rem;text-align:center">
+            Showing first 10 of ${h.totalRows} rows
+           </p>`
+        : ''}`;
+  }
+
+  document.getElementById('previewOverlay').classList.add('open');
+}
+
+function closePreview() {
+  document.getElementById('previewOverlay').classList.remove('open');
+}
+
+// Close on backdrop click
+document.getElementById('previewOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePreview();
+});
+
+// ── Delete ─────────────────────────────────────────────────────
+async function deleteHistory(id) {
+  if (!confirm('Remove this upload record? This only removes the history entry, not the imported revenue data.')) return;
+  const data = await apiFetch(`/excel/history/${id}`, { method: 'DELETE' });
+  if (data && data.success) {
+    allHistory = allHistory.filter(h => h._id !== id);
+    updateStats(allHistory);
+    showToast('Upload record removed', 'success');
+    applyFilter();
+  } else {
+    showToast(data?.message || 'Error', 'error');
+  }
+}
+
+// ── Utility ────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g,
+    m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+
+// Start
+loadHistory();
+</script>
+</body>
+</html>

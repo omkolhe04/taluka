@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excel Upload — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body { font-family: Inter, sans-serif !important; }
+.main-content { background: #F8FAFC; padding: 1.75rem; }
+
+/* ── Section card ── */
+.xl-section { background:#fff; border:1px solid #F1F5F9; border-radius:16px; padding:1.4rem; margin-bottom:1.25rem; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+
+/* ── Stepper ── */
+.stepper { display:flex; align-items:center; padding:1rem 1.5rem; overflow-x:auto; gap:0; }
+.step-item { display:flex; align-items:center; gap:.55rem; flex-shrink:0; }
+.step-circle { width:32px; height:32px; border-radius:50%; background:#F1F5F9; border:2px solid #E2E8F0; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#94A3B8; transition:all .2s; }
+.step-circle.active { background:#2563EB; border-color:#2563EB; color:#fff; }
+.step-circle.done   { background:#16A34A; border-color:#16A34A; color:#fff; }
+.step-label { font-size:.82rem; font-weight:500; color:#94A3B8; white-space:nowrap; }
+.step-label.active { color:#2563EB; font-weight:700; }
+.step-label.done   { color:#16A34A; }
+.step-arrow { margin:0 .75rem; color:#E2E8F0; font-size:.9rem; flex-shrink:0; }
+
+/* ── Drop zone ── */
+.drop-zone {
+  border:2px dashed #CBD5E1; border-radius:14px;
+  padding:2.5rem 1.5rem; text-align:center;
+  cursor:pointer; transition:all .2s; background:#FAFBFC;
+}
+.drop-zone:hover, .drop-zone.drag-over { border-color:#2563EB; background:#EFF6FF; }
+.dz-icon-wrap { width:64px; height:64px; border-radius:16px; background:#EFF6FF; display:flex; align-items:center; justify-content:center; margin:0 auto .9rem; }
+.dz-icon-wrap svg { stroke:#2563EB; fill:none; width:28px; height:28px; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.drop-zone h4 { font-size:.95rem; font-weight:700; color:#1E293B; margin-bottom:.35rem; }
+.drop-zone p  { font-size:.8rem; color:#94A3B8; margin-bottom:.9rem; }
+.btn-browse {
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.55rem 1.1rem; background:#2563EB; color:#fff;
+  border:none; border-radius:9px; font-size:.84rem; font-weight:600;
+  cursor:pointer; font-family:inherit; transition:background .18s;
+}
+.btn-browse:hover { background:#1D4ED8; }
+
+/* ── File chips ── */
+.file-chips { display:flex; flex-direction:column; gap:.6rem; margin-top:1rem; }
+.file-chip { display:flex; align-items:center; gap:.75rem; background:#F8FAFC; border:1px solid #F1F5F9; border-radius:10px; padding:.65rem 1rem; }
+.fc-icon { width:36px; height:36px; background:#DCFCE7; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.fc-icon svg { stroke:#16A34A; fill:none; width:18px; height:18px; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.fc-info { flex:1; min-width:0; }
+.fc-name { font-size:.875rem; font-weight:600; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fc-meta { font-size:.73rem; color:#94A3B8; }
+.fc-remove { background:#FEF2F2; border:none; color:#DC2626; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s; }
+.fc-remove:hover { background:#DC2626; color:#fff; }
+
+/* ── Format ref ── */
+.format-ref { background:#F0F9FF; border:1px solid #BAE6FD; border-radius:12px; padding:.9rem 1.1rem; margin-top:1rem; }
+.format-ref h4 { font-size:.83rem; font-weight:700; color:#0369A1; margin-bottom:.5rem; }
+.col-chips { display:flex; flex-wrap:wrap; gap:.35rem; margin-bottom:.6rem; }
+.col-chip     { padding:.2rem .6rem; border-radius:20px; font-size:.73rem; font-weight:600; background:#DBEAFE; color:#1D4ED8; }
+.col-chip.req { background:#FEE2E2; color:#991B1B; }
+.col-group-label { font-size:.72rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.04em; margin:.5rem 0 .25rem; }
+
+/* ── Step 1 alert ── */
+.step-alert { padding:.65rem .9rem; border-radius:9px; font-size:.83rem; display:none; margin-top:.75rem; }
+.step-alert.err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; display:block; }
+
+/* ── Preview cards ── */
+.preview-cards { display:flex; flex-direction:column; gap:1.1rem; }
+.preview-card { background:#fff; border:1px solid #F1F5F9; border-radius:12px; overflow:hidden; }
+.preview-card-header { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1.2rem; background:#F8FAFC; border-bottom:1px solid #F1F5F9; }
+.preview-card-header h4 { font-size:.875rem; font-weight:700; color:#1E293B; margin:0; display:flex; align-items:center; gap:.45rem; }
+.preview-card-meta { font-size:.75rem; color:#94A3B8; }
+.preview-card-body { overflow-x:auto; max-height:280px; overflow-y:auto; }
+.preview-error { padding:1rem 1.2rem; color:#DC2626; font-size:.85rem; background:#FEF2F2; }
+
+/* ── Navigation buttons ── */
+.step-nav { display:flex; gap:.75rem; margin-top:1.25rem; justify-content:space-between; align-items:center; }
+.btn-nav-primary { padding:.65rem 1.4rem; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:.875rem; font-weight:700; cursor:pointer; font-family:inherit; box-shadow:0 2px 8px rgba(37,99,235,.25); transition:background .18s; }
+.btn-nav-primary:hover { background:#1D4ED8; }
+.btn-nav-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-nav-ghost { padding:.65rem 1.2rem; background:#F1F5F9; border:1.5px solid #E2E8F0; color:#374151; border-radius:10px; font-size:.875rem; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* ── Result box ── */
+.result-box { border-radius:14px; padding:2rem; text-align:center; margin-bottom:1rem; }
+.r-icon { font-size:2.8rem; margin-bottom:.6rem; }
+.result-box h3 { font-size:1.05rem; font-weight:700; margin-bottom:.35rem; color:#1E293B; }
+.result-box p  { font-size:.875rem; color:#64748B; }
+.result-box.ok   { background:#F0FDF4; border:1.5px solid #BBF7D0; }
+.result-box.fail { background:#FEF2F2; border:1.5px solid #FECACA; }
+
+/* ── Preview summary badge ── */
+.preview-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .85rem; background:#EFF6FF; border:1px solid #BFDBFE; color:#2563EB; border-radius:20px; font-size:.78rem; font-weight:700; }
+
+/* ── Table override for preview ── */
+.data-table th { background:#F8FAFC; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div style="margin-bottom:1.25rem">
+      <h1 style="font-size:1.4rem;font-weight:800;color:#1E293B;margin-bottom:.15rem">Excel Upload — Revenue Import</h1>
+      <p style="font-size:.8rem;color:#94A3B8">Upload Excel files to bulk import village revenue data</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="xl-section" style="padding:1rem 1.5rem;margin-bottom:1.25rem">
+      <div class="stepper">
+        <div class="step-item"><div class="step-circle active" id="sc1">1</div><span class="step-label active" id="sl1">Select Files</span></div>
+        <div class="step-arrow">›</div>
+        <div class="step-item"><div class="step-circle" id="sc2">2</div><span class="step-label" id="sl2">Preview Data</span></div>
+        <div class="step-arrow">›</div>
+        <div class="step-item"><div class="step-circle" id="sc3">3</div><span class="step-label" id="sl3">Confirm Import</span></div>
+        <div class="step-arrow">›</div>
+        <div class="step-item"><div class="step-circle" id="sc4">4</div><span class="step-label" id="sl4">Done</span></div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Select Files ══ -->
+    <div id="s1">
+      <div class="xl-section">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="dz-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h4>Drag & drop Excel files here</h4>
+          <p>or click to browse files from your computer</p>
+          <button class="btn-browse" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Browse Files
+          </button>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none" onchange="onFilesSelected()">
+        </div>
+        <div class="file-chips" id="fileChips"></div>
+        <div class="step-alert" id="s1Alert"></div>
+
+        <div class="format-ref">
+          <h4>📋 Required Excel Columns</h4>
+          <div class="col-chips">
+            <span class="col-chip req">villageName *</span>
+            <span class="col-chip req">type *</span>
+            <span class="col-chip req">amount *</span>
+            <span class="col-chip">year</span>
+            <span class="col-chip">month</span>
+            <span class="col-chip">date</span>
+          </div>
+          <p style="font-size:.75rem;color:#0369A1">⚠️ Village names must exactly match villages created by BDO in Manage Villages.</p>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn-nav-primary" id="previewBtn" onclick="uploadForPreview()" disabled>
+          Preview Files →
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Preview Data ══ -->
+    <div id="s2" style="display:none">
+      <div class="xl-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+          <div>
+            <h3 style="font-size:.95rem;font-weight:700;color:#1E293B;margin-bottom:.15rem">Step 2 — Preview Parsed Data</h3>
+            <p style="font-size:.78rem;color:#94A3B8">Review data from each file before importing.</p>
+          </div>
+          <span class="preview-badge" id="previewSummaryBadge">—</span>
+        </div>
+        <div class="preview-cards" id="previewCards"></div>
+      </div>
+      <div class="step-nav">
+        <button class="btn-nav-ghost" onclick="resetToStep1()">← Back / Change Files</button>
+        <button class="btn-nav-primary" id="confirmBtn" onclick="confirmImport()">✅ Confirm Import All</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Importing ══ -->
+    <div id="s3" style="display:none">
+      <div class="xl-section" style="text-align:center;padding:3rem">
+        <div style="width:56px;height:56px;border:4px solid #DBEAFE;border-top-color:#2563EB;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1.1rem"></div>
+        <h3 style="font-size:1rem;font-weight:700;color:#1E293B;margin-bottom:.35rem">Importing Data…</h3>
+        <p style="font-size:.85rem;color:#94A3B8">Please wait while we process your files</p>
+      </div>
+      <style>@keyframes spin { to { transform:rotate(360deg); } }</style>
+    </div>
+
+    <!-- ══ STEP 4: Done ══ -->
+    <div id="s4" style="display:none">
+      <div class="xl-section">
+        <div id="resultBox"></div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:1rem;margin-top:.75rem">
+        <button class="btn-nav-ghost" onclick="resetToStep1()">📂 Upload More Files</button>
+        <button class="btn-nav-primary" onclick="window.location.href='upload-history.html'">🕓 View Upload History</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('excel');
+
+let selectedFiles  = [];
+let parsedPreviews = [];
+
+// ── Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const dt = new DataTransfer();
+  [...selectedFiles].forEach(f => dt.items.add(f));
+  [...e.dataTransfer.files].forEach(f => dt.items.add(f));
+  document.getElementById('fileInput').files = dt.files;
+  onFilesSelected();
+});
+
+// ── File selection
+function onFilesSelected() {
+  const input = document.getElementById('fileInput');
+  const newFiles = [...input.files];
+  const existingNames = selectedFiles.map(f => f.name);
+  for (const f of newFiles) { if (!existingNames.includes(f.name)) selectedFiles.push(f); }
+  renderFileChips();
+}
+
+function removeFile(name) {
+  selectedFiles = selectedFiles.filter(f => f.name !== name);
+  renderFileChips();
+}
+
+function renderFileChips() {
+  const container = document.getElementById('fileChips');
+  const btn       = document.getElementById('previewBtn');
+  if (!selectedFiles.length) { container.innerHTML = ''; btn.disabled = true; return; }
+  btn.disabled = false;
+  container.innerHTML = selectedFiles.map(f => `
+    <div class="file-chip">
+      <div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="fc-info">
+        <div class="fc-name">${escHtml(f.name)}</div>
+        <div class="fc-meta">${(f.size/1024).toFixed(1)} KB · Excel file</div>
+      </div>
+      <button class="fc-remove" onclick="removeFile('${escHtml(f.name)}')" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+// ── Step 1 → 2
+async function uploadForPreview() {
+  if (!selectedFiles.length) return;
+  const btn = document.getElementById('previewBtn');
+  const al  = document.getElementById('s1Alert');
+  btn.disabled = true; btn.textContent = '⏳ Parsing…';
+  al.style.display = 'none';
+  const fd = new FormData();
+  selectedFiles.forEach(f => fd.append('files', f));
+  const data = await apiUpload('/excel/preview', fd);
+  btn.disabled = false; btn.textContent = 'Preview Files →';
+  if (!data || !data.success) {
+    al.style.display = 'block'; al.className = 'step-alert err';
+    al.textContent = data?.message || 'Failed to parse files'; return;
+  }
+  parsedPreviews = data.previews;
+  renderPreviewStep(data);
+  setStep(2);
+}
+
+function renderPreviewStep(data) {
+  const totalRows = data.previews.reduce((s,p) => s + p.totalRows, 0);
+  document.getElementById('previewSummaryBadge').textContent = `${data.fileCount} file(s) · ${totalRows} total rows`;
+
+  const vv = data.villageValidation || {};
+  const confirmBtn = document.getElementById('confirmBtn');
+  let validationHtml = '';
+  if (vv.invalidVillages && vv.invalidVillages.length) {
+    const names = vv.invalidVillages.map(v => `<strong>${escHtml(v)}</strong>`).join(', ');
+    validationHtml = `
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;gap:.75rem;align-items:flex-start">
+        <span style="font-size:1.3rem;flex-shrink:0">🚫</span>
+        <div>
+          <div style="font-weight:700;color:#991B1B;margin-bottom:.3rem">Upload Blocked — Unknown Villages</div>
+          <div style="font-size:.875rem;color:#7F1D1D">${vv.invalidVillages.length===1 ? `Village ${names} is not created by BDO.` : `These villages are not created by BDO: ${names}.`}</div>
+          <div style="font-size:.82rem;color:#B91C1C;margin-top:.4rem">Ask BDO to add ${vv.invalidVillages.length>1?'these villages':'this village'} in <strong>Manage Villages</strong> before uploading.</div>
+        </div>
+      </div>`;
+    confirmBtn.disabled = true; confirmBtn.style.opacity='.5';
+  } else { confirmBtn.disabled=false; confirmBtn.style.opacity=''; }
+
+  const hideCols = ['date'];
+
+  document.getElementById('previewCards').innerHTML = validationHtml + data.previews.map(p => {
+    if (p.error) return `
+      <div class="preview-card">
+        <div class="preview-card-header"><h4>⚠️ ${escHtml(p.originalName)}</h4><span class="preview-card-meta">Parse error</span></div>
+        <div class="preview-error">❌ ${escHtml(p.error)}</div>
+      </div>`;
+    const cols = (p.columns||[]).filter(c => !hideCols.includes(c.toLowerCase()));
+    const rows = p.preview||[];
+    return `
+      <div class="preview-card">
+        <div class="preview-card-header">
+          <h4>📄 ${escHtml(p.originalName)}</h4>
+          <span class="preview-card-meta">${p.totalRows} rows · showing first ${rows.length}</span>
+        </div>
+        <div class="preview-card-body">
+          ${cols.length ? `<table class="data-table">
+            <thead><tr>${cols.map(c=>`<th>${escHtml(c)}</th>`).join('')}</tr></thead>
+            <tbody>${rows.map(r => {
+              const inv = r._invalidVillage===true;
+              const cells = cols.map(c=>`<td>${escHtml(String(r[c]??'—'))}</td>`).join('');
+              const flag  = inv ? `<td style="color:#DC2626;font-weight:700">🚫</td>` : '<td></td>';
+              return `<tr style="${inv?'background:#FEF2F2;':''}">${cells}${flag}</tr>`;
+            }).join('')}</tbody>
+          </table>` : '<p style="padding:1rem;color:#94A3B8">No data found.</p>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Step 2 → 3 → 4
+async function confirmImport() {
+  const validFiles = parsedPreviews.filter(p => !p.error && p.allRows?.length);
+  if (!validFiles.length) { showToast('No valid data to import','error'); return; }
+  setStep(3);
+  const data = await apiPost('/excel/import-revenue', {
+    files: validFiles.map(p => ({ originalName:p.originalName, allRows:p.allRows, savedPath:p.savedPath||'' }))
+  });
+  if (!data?.success && data?.code==='VILLAGE_NOT_FOUND') {
+    setStep(2);
+    const names = (data.invalidVillages||[]).map(v=>`<strong>${escHtml(v)}</strong>`).join(', ');
+    document.getElementById('previewCards').innerHTML = `
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:1.2rem 1.5rem;display:flex;gap:.85rem;align-items:flex-start;margin-bottom:.75rem">
+        <span style="font-size:1.5rem;flex-shrink:0">🚫</span>
+        <div>
+          <div style="font-weight:700;color:#991B1B;font-size:.95rem;margin-bottom:.35rem">Upload Rejected</div>
+          <div style="font-size:.875rem;color:#7F1D1D;margin-bottom:.3rem">${data.message}</div>
+          <div style="font-size:.8rem;color:#B91C1C">Ask BDO to add ${(data.invalidVillages||[]).length>1?'these villages':'this village'} in <strong>Manage Villages</strong> and re-upload.</div>
+        </div>
+      </div>` + document.getElementById('previewCards').innerHTML;
+    showToast('Upload rejected: '+data.message,'error');
+    document.getElementById('confirmBtn').disabled=true; document.getElementById('confirmBtn').style.opacity='.5';
+    return;
+  }
+  setStep(4);
+  if (data?.success) {
+    document.getElementById('resultBox').innerHTML = `
+      <div class="result-box ok">
+        <div class="r-icon">✅</div>
+        <h3>${data.message}</h3>
+        <p>${data.skipped ? `${data.skipped} rows skipped (missing required fields).` : 'All rows imported successfully.'}</p>
+        <p style="margin-top:.4rem;font-size:.75rem;color:#94A3B8">Batch ID: ${data.batchId}</p>
+      </div>`;
+    showToast(data.message, 'success');
+  } else {
+    document.getElementById('resultBox').innerHTML = `
+      <div class="result-box fail">
+        <div class="r-icon">❌</div>
+        <h3>Import Failed</h3>
+        <p>${data?.message||'Unknown error'}</p>
+      </div>`;
+    showToast(data?.message||'Import failed','error');
+  }
+}
+
+function resetToStep1() {
+  selectedFiles=[]; parsedPreviews=[];
+  document.getElementById('fileChips').innerHTML='';
+  document.getElementById('previewCards').innerHTML='';
+  document.getElementById('resultBox').innerHTML='';
+  document.getElementById('s1Alert').style.display='none';
+  document.getElementById('fileInput').value='';
+  document.getElementById('previewBtn').disabled=true;
+  document.getElementById('previewBtn').textContent='Preview Files →';
+  setStep(1);
+}
+
+function setStep(active) {
+  ['s1','s2','s3','s4'].forEach((id,i) => document.getElementById(id).style.display=(i+1===active?'':'none'));
+  [1,2,3,4].forEach(n => {
+    const c=document.getElementById(`sc${n}`), l=document.getElementById(`sl${n}`);
+    if (n<active)      { c.className='step-circle done';   l.className='step-label done';   c.textContent='✓'; }
+    else if (n===active){ c.className='step-circle active'; l.className='step-label active'; c.textContent=n; }
+    else               { c.className='step-circle';        l.className='step-label';        c.textContent=n; }
+  });
+}
+
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+</script>
+</body>
+</html>

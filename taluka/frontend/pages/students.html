@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Data — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body { font-family: Inter, sans-serif !important; }
+.main-content { background: #F8FAFC; padding: 1.75rem; }
+
+/* ── Breadcrumb ── */
+.sd-breadcrumb { display:flex; align-items:center; gap:.5rem; font-size:.85rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.sd-bc-link    { color:#2563EB; cursor:pointer; font-weight:600; text-decoration:none; transition:color .15s; }
+.sd-bc-link:hover { text-decoration:underline; }
+.sd-bc-sep     { color:#CBD5E1; }
+.sd-bc-cur     { background:#EFF6FF; color:#2563EB; padding:.18rem .65rem; border-radius:6px; font-weight:700; }
+
+/* ── Stats mini row ── */
+.sd-stats { display:flex; gap:.85rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.sd-stat { background:#fff; border:1px solid #F1F5F9; border-radius:12px; padding:.85rem 1.1rem; flex:1; min-width:120px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+.sd-stat-val { font-size:1.5rem; font-weight:800; color:#1E293B; line-height:1; margin-bottom:.2rem; }
+.sd-stat-lbl { font-size:.72rem; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:.04em; }
+
+/* ── Toolbar ── */
+.sd-toolbar { display:flex; gap:.75rem; align-items:center; margin-bottom:1.1rem; flex-wrap:wrap; }
+.sd-search { flex:1; min-width:200px; max-width:340px; position:relative; }
+.sd-search svg { position:absolute; left:.85rem; top:50%; transform:translateY(-50%); stroke:#94A3B8; fill:none; stroke-width:2; width:15px; height:15px; pointer-events:none; }
+.sd-search input { width:100%; padding:.58rem .9rem .58rem 2.4rem; border:1.5px solid #E2E8F0; border-radius:10px; font-size:.85rem; font-family:inherit; color:#1E293B; outline:none; background:#fff; }
+.sd-search input:focus { border-color:#2563EB; }
+.sd-count { font-size:.8rem; color:#94A3B8; margin-left:auto; font-weight:500; }
+
+/* ── Cards grid ── */
+.sd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; }
+.sd-card { background:#fff; border:1.5px solid #F1F5F9; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05); cursor:pointer; transition:transform .18s,box-shadow .18s,border-color .18s; }
+.sd-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(37,99,235,.10); border-color:#BFDBFE; }
+.sd-card-stripe { height:4px; }
+.stripe-blue  { background:linear-gradient(90deg,#2563EB,#7C3AED); }
+.stripe-green { background:linear-gradient(90deg,#10B981,#059669); }
+.sd-card-body { padding:1.1rem 1.2rem .95rem; }
+.sd-card-title { font-size:.98rem; font-weight:700; color:#1E293B; margin-bottom:.55rem; display:flex; align-items:center; gap:.4rem; text-transform:capitalize; }
+.sd-card-meta { display:flex; flex-direction:column; gap:.3rem; font-size:.78rem; color:#64748B; margin-bottom:.75rem; }
+.sd-card-meta span { display:flex; align-items:center; gap:.35rem; }
+.sd-card-foot { padding-top:.65rem; border-top:1px solid #F8FAFC; display:flex; align-items:center; justify-content:space-between; }
+.sd-count-badge { font-size:.75rem; color:#2563EB; font-weight:700; background:#EFF6FF; padding:.2rem .6rem; border-radius:20px; }
+.sd-open-link { font-size:.75rem; color:#94A3B8; font-weight:600; }
+
+/* ── Student table ── */
+.sd-table-wrap { background:#fff; border:1px solid #F1F5F9; border-radius:16px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05); overflow-x:auto; }
+.sd-table { width:100%; border-collapse:collapse; }
+.sd-table th { padding:.75rem 1rem; text-align:left; font-size:.73rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #F1F5F9; background:#F8FAFC; white-space:nowrap; }
+.sd-table td { padding:.875rem 1rem; font-size:.875rem; color:#374151; border-bottom:1px solid #F8FAFC; vertical-align:middle; }
+.sd-table tbody tr:last-child td { border-bottom:none; }
+.sd-table tbody tr:hover td { background:#FAFBFF; }
+.student-img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid #E2E8F0; }
+.student-img-placeholder { width:38px; height:38px; border-radius:50%; background:#2563EB; display:inline-flex; align-items:center; justify-content:center; font-size:.9rem; font-weight:700; color:#fff; border:2px solid #BFDBFE; }
+.aadhaar-chip { background:#F1F5F9; color:#475569; padding:.2rem .6rem; border-radius:6px; font-size:.78rem; font-family:monospace; letter-spacing:.05em; }
+.medium-chip { background:#EFF6FF; color:#2563EB; padding:.2rem .6rem; border-radius:20px; font-size:.73rem; font-weight:600; }
+.btn-sm { padding:.3rem .7rem; border-radius:7px; font-size:.75rem; font-weight:600; cursor:pointer; font-family:inherit; border:1.5px solid; transition:all .15s; }
+.btn-sm-edit { background:#EFF6FF; border-color:#BFDBFE; color:#2563EB; }
+.btn-sm-edit:hover { background:#2563EB; color:#fff; border-color:#2563EB; }
+.btn-sm-del  { background:#FEF2F2; border-color:#FECACA; color:#DC2626; }
+.btn-sm-del:hover  { background:#DC2626; color:#fff; }
+
+/* ── Empty state ── */
+.sd-empty { text-align:center; padding:3rem 1rem; grid-column:1/-1; }
+.sd-empty svg { stroke:#CBD5E1; fill:none; width:52px; height:52px; margin:0 auto .85rem; display:block; }
+.sd-empty h3 { font-size:.95rem; font-weight:600; color:#374151; margin-bottom:.3rem; }
+.sd-empty p  { font-size:.83rem; color:#94A3B8; }
+
+/* ── Views ── */
+.sd-view { display:none; }
+.sd-view.active { display:block; }
+
+/* ── Page header with action ── */
+.pg-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; flex-wrap:wrap; gap:.75rem; }
+.pg-head-text h1 { font-size:1.4rem; font-weight:800; color:#1E293B; margin-bottom:.15rem; }
+.pg-head-text p  { font-size:.8rem; color:#94A3B8; }
+.btn-add-primary { display:inline-flex; align-items:center; gap:.45rem; padding:.6rem 1.2rem; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 2px 8px rgba(37,99,235,.25); transition:background .18s; }
+.btn-add-primary:hover { background:#1D4ED8; }
+
+/* ── Modal shared ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; padding:1rem; }
+.modal-overlay.open { display:flex; }
+.pg-modal { background:#fff; border-radius:16px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.18); animation:mIn .2s ease; }
+.pg-modal.wide { max-width:640px; }
+@keyframes mIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.pm-head { padding:1.1rem 1.5rem; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center; }
+.pm-head h3 { font-size:.95rem; font-weight:700; color:#1E293B; margin:0; }
+.pm-close { background:none; border:none; cursor:pointer; color:#94A3B8; font-size:1.2rem; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+.pm-close:hover { background:#F1F5F9; }
+.pm-body { padding:1.4rem 1.5rem; }
+.pm-foot { padding:.9rem 1.5rem; border-top:1px solid #F1F5F9; display:flex; gap:.75rem; justify-content:flex-end; }
+.pm-alert { padding:.65rem .9rem; border-radius:9px; font-size:.83rem; display:none; margin-bottom:.85rem; }
+.pm-alert.err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; display:block; }
+.pm-group { margin-bottom:1rem; }
+.pm-group label { font-size:.83rem; font-weight:600; color:#374151; display:block; margin-bottom:.4rem; }
+.pm-input, .pm-select { width:100%; padding:.68rem .9rem; border:1.5px solid #E2E8F0; border-radius:10px; font-size:.875rem; font-family:inherit; color:#1E293B; outline:none; }
+.pm-input:focus, .pm-select:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+.pm-input::placeholder { color:#94A3B8; }
+.pm-input:disabled { background:#F8FAFC; color:#94A3B8; }
+.pm-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media(max-width:520px){ .pm-grid{ grid-template-columns:1fr; } }
+.btn-save-pm   { padding:.62rem 1.25rem; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:.875rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 2px 8px rgba(37,99,235,.25); }
+.btn-cancel-pm { padding:.62rem 1rem; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; font-size:.875rem; font-weight:600; cursor:pointer; font-family:inherit; color:#374151; }
+
+/* Photo preview in modal */
+.photo-preview-wrap { width:80px; height:80px; border-radius:50%; background:#F1F5F9; border:2px solid #E2E8F0; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin:0 auto .75rem; cursor:pointer; }
+.photo-preview-wrap:hover { border-color:#2563EB; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="pg-head">
+      <div class="pg-head-text">
+        <h1>Student Data</h1>
+        <p>Village → College → Student drill-down management</p>
+      </div>
+      <div id="pageActions"></div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="sd-breadcrumb" id="breadcrumb">
+      <span style="color:#94A3B8;font-size:.85rem">🎓 Student Data</span>
+    </div>
+
+    <!-- ══ VIEW 1: Villages ══ -->
+    <div class="sd-view active" id="viewVillages">
+      <div class="sd-stats">
+        <div class="sd-stat"><div class="sd-stat-val" id="vStat1">—</div><div class="sd-stat-lbl">🏘 Villages</div></div>
+        <div class="sd-stat"><div class="sd-stat-val" id="vStat2">—</div><div class="sd-stat-lbl">🏫 Colleges</div></div>
+        <div class="sd-stat"><div class="sd-stat-val" id="vStat3">—</div><div class="sd-stat-lbl">👨‍🎓 Students</div></div>
+      </div>
+      <div class="sd-toolbar">
+        <div class="sd-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="villageSearch" placeholder="Search village…" oninput="filterVillages()">
+        </div>
+        <span class="sd-count" id="vCount"></span>
+      </div>
+      <div class="sd-grid" id="villageGrid">
+        <div style="color:#94A3B8;font-size:.875rem;grid-column:1/-1;padding:1rem">⏳ Loading…</div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW 2: Colleges ══ -->
+    <div class="sd-view" id="viewColleges">
+      <div class="sd-toolbar">
+        <div class="sd-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="collegeSearch" placeholder="Search college…" oninput="filterColleges()">
+        </div>
+        <span class="sd-count" id="cCount"></span>
+      </div>
+      <div class="sd-grid" id="collegeGrid">
+        <div style="color:#94A3B8;font-size:.875rem;grid-column:1/-1;padding:1rem">⏳ Loading…</div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW 3: Students ══ -->
+    <div class="sd-view" id="viewStudents">
+      <div class="sd-toolbar">
+        <div class="sd-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="studentSearch" placeholder="Search student name or class…" oninput="filterStudents()">
+        </div>
+        <span class="sd-count" id="sCount"></span>
+      </div>
+      <div class="sd-table-wrap">
+        <div id="studentTableWrap" style="padding:2rem;text-align:center;color:#94A3B8">⏳ Loading…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── College Modal ── -->
+<div class="modal-overlay" id="collegeModal">
+  <div class="pg-modal">
+    <div class="pm-head">
+      <h3 id="cModalTitle">Add College</h3>
+      <button class="pm-close" onclick="closeModal('collegeModal')">✕</button>
+    </div>
+    <div class="pm-body">
+      <input type="hidden" id="c_id">
+      <div class="pm-alert" id="cModalAlert"></div>
+      <div class="pm-group">
+        <label>Village</label>
+        <input type="text" class="pm-input" id="c_village_display" disabled>
+      </div>
+      <div class="pm-group">
+        <label>College Name *</label>
+        <input type="text" class="pm-input" id="c_name" placeholder="e.g. Zilla Parishad School">
+      </div>
+    </div>
+    <div class="pm-foot">
+      <button class="btn-cancel-pm" onclick="closeModal('collegeModal')">Cancel</button>
+      <button class="btn-save-pm" id="cSaveBtn" onclick="saveCollege()">Save College</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Student Modal ── -->
+<div class="modal-overlay" id="studentModal">
+  <div class="pg-modal wide">
+    <div class="pm-head">
+      <h3 id="sModalTitle">Add Student</h3>
+      <button class="pm-close" onclick="closeModal('studentModal')">✕</button>
+    </div>
+    <div class="pm-body">
+      <input type="hidden" id="s_id">
+      <div class="pm-alert" id="sModalAlert"></div>
+
+      <!-- Photo -->
+      <div style="text-align:center;margin-bottom:1.1rem">
+        <div class="photo-preview-wrap" id="imgPreviewWrap" onclick="document.getElementById('s_image').click()">📷</div>
+        <div style="font-size:.75rem;color:#94A3B8">Click to upload photo</div>
+        <input type="file" id="s_image" accept="image/*" style="display:none" onchange="previewImage(this)">
+      </div>
+
+      <div class="pm-grid">
+        <div class="pm-group">
+          <label>Full Name *</label>
+          <input type="text" class="pm-input" id="s_name" placeholder="Student full name">
+        </div>
+        <div class="pm-group">
+          <label>Aadhaar Number *</label>
+          <input type="text" class="pm-input" id="s_aadhaar" placeholder="12-digit number" maxlength="12" oninput="formatAadhaarInput(this)">
+        </div>
+        <div class="pm-group">
+          <label>Class *</label>
+          <input type="text" class="pm-input" id="s_class" placeholder="e.g. 10th, 12th">
+        </div>
+        <div class="pm-group">
+          <label>Medium *</label>
+          <select class="pm-select" id="s_medium">
+            <option value="">Select medium</option>
+            <option>Marathi</option><option>English</option>
+            <option>Hindi</option><option>Semi-English</option>
+            <option>Urdu</option><option>Other</option>
+          </select>
+        </div>
+        <div class="pm-group">
+          <label>Village</label>
+          <input type="text" class="pm-input" id="s_village_display" disabled>
+        </div>
+        <div class="pm-group">
+          <label>College *</label>
+          <select class="pm-select" id="s_college"><option value="">Loading…</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="pm-foot">
+      <button class="btn-cancel-pm" onclick="closeModal('studentModal')">Cancel</button>
+      <button class="btn-save-pm" id="sSaveBtn" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+const currentUser = getUser();
+if (!currentUser) window.location.href = '/index.html';
+initLayout('students');
+
+const ROLE = currentUser.role;
+const canManageCollege = ['BDO','DeptHead'].includes(ROLE);
+const canAddStudent    = ['BDO','DeptHead','DataEntry'].includes(ROLE);
+const canDeleteStudent = ROLE === 'BDO';
+
+let allVillages=[], allColleges=[], allStudents=[];
+let selectedVillage=null, selectedCollege=null;
+let editingCollegeId=null, editingStudentId=null;
+const COLORS=['#2563EB','#7C3AED','#10B981','#F59E0B','#EF4444','#06B6D4'];
+function vColor(n){ let h=0; for(const c of(n||'x')) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
+
+function showView(name) {
+  document.querySelectorAll('.sd-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view'+name).classList.add('active');
+  renderBreadcrumb(name);
+  updateActions(name);
+}
+function renderBreadcrumb(view) {
+  let html='';
+  if (view==='Villages') {
+    html=`<span style="color:#94A3B8;font-size:.85rem">🎓 Student Data</span>`;
+  } else if (view==='Colleges') {
+    html=`<span class="sd-bc-link" onclick="backToVillages()">🎓 Student Data</span><span class="sd-bc-sep">›</span><span class="sd-bc-cur">🏘️ ${escHtml(selectedVillage.name)}</span>`;
+  } else {
+    html=`<span class="sd-bc-link" onclick="backToVillages()">🎓 Student Data</span><span class="sd-bc-sep">›</span><span class="sd-bc-link" onclick="backToColleges()">🏘️ ${escHtml(selectedVillage.name)}</span><span class="sd-bc-sep">›</span><span class="sd-bc-cur">🏫 ${escHtml(selectedCollege.name)}</span>`;
+  }
+  document.getElementById('breadcrumb').innerHTML=html;
+}
+function updateActions(view) {
+  const div=document.getElementById('pageActions');
+  if (view==='Colleges' && canManageCollege) {
+    div.innerHTML=`<button class="btn-add-primary" onclick="openAddCollege()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add College</button>`;
+  } else if (view==='Students' && canAddStudent) {
+    div.innerHTML=`<button class="btn-add-primary" onclick="openAddStudent()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Student</button>`;
+  } else { div.innerHTML=''; }
+}
+
+function backToVillages() { selectedVillage=null; selectedCollege=null; showView('Villages'); loadVillageStats(); }
+function backToColleges() { selectedCollege=null; loadColleges(selectedVillage._id); }
+
+// ── Villages ──
+async function loadVillageStats() {
+  const [cRes,sRes] = await Promise.all([apiGet('/colleges'),apiGet('/students')]);
+  document.getElementById('vStat2').textContent = cRes?.data?.length ?? '—';
+  document.getElementById('vStat3').textContent = sRes?.count ?? '—';
+}
+async function loadVillages() {
+  const data = await apiGet('/villages');
+  if (!data?.success) { document.getElementById('villageGrid').innerHTML=`<div class="sd-empty"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><h3>Failed to load</h3></div>`; return; }
+  allVillages = data.data;
+  document.getElementById('vStat1').textContent = allVillages.length;
+  filterVillages(); loadVillageStats();
+}
+function filterVillages() {
+  const q=document.getElementById('villageSearch').value.toLowerCase().trim();
+  const list=q?allVillages.filter(v=>v.name.toLowerCase().includes(q)):allVillages;
+  document.getElementById('vCount').textContent=`${list.length} village${list.length!==1?'s':''}`;
+  renderVillageCards(list);
+}
+function renderVillageCards(list) {
+  const grid=document.getElementById('villageGrid');
+  if (!list.length) {
+    grid.innerHTML=`<div class="sd-empty"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><h3>${allVillages.length?'No match':'No villages'}</h3><p>Villages are managed in the Manage Villages section.</p></div>`;
+    return;
+  }
+  grid.innerHTML=list.map(v=>`
+    <div class="sd-card" onclick="selectVillage('${v._id}','${escHtml(v.name)}','${escHtml(v.taluka||'')}')">
+      <div class="sd-card-stripe stripe-blue" style="background:linear-gradient(90deg,${vColor(v.name)},${vColor(v.name+'x')})"></div>
+      <div class="sd-card-body">
+        <div class="sd-card-title">🏘️ ${escHtml(v.name)}</div>
+        <div class="sd-card-meta">
+          ${v.taluka?`<span>📍 ${escHtml(v.taluka)}</span>`:''}
+          <span>📅 ${new Date(v.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+        </div>
+        <div class="sd-card-foot">
+          <span class="sd-count-badge">View Colleges</span>
+          <span class="sd-open-link">Click →</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function selectVillage(id,name,taluka) { selectedVillage={_id:id,name,taluka}; loadColleges(id); }
+
+// ── Colleges ──
+async function loadColleges(villageId) {
+  showView('Colleges');
+  document.getElementById('collegeGrid').innerHTML=`<div style="color:#94A3B8;font-size:.875rem;grid-column:1/-1;padding:1rem">⏳ Loading…</div>`;
+  const data=await apiGet(`/colleges?villageId=${villageId}`);
+  if (!data?.success) { document.getElementById('collegeGrid').innerHTML=`<div class="sd-empty"><h3>Failed to load</h3></div>`; return; }
+  allColleges=data.data; filterColleges();
+}
+function filterColleges() {
+  const q=document.getElementById('collegeSearch').value.toLowerCase().trim();
+  const list=q?allColleges.filter(c=>c.name.toLowerCase().includes(q)):allColleges;
+  document.getElementById('cCount').textContent=`${list.length} college${list.length!==1?'s':''}`;
+  renderCollegeCards(list);
+}
+function renderCollegeCards(colleges) {
+  const grid=document.getElementById('collegeGrid');
+  if (!colleges.length) {
+    grid.innerHTML=`<div class="sd-empty"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><h3>${allColleges.length?'No match':'No colleges yet'}</h3><p>${canManageCollege?'Use "Add College" above.':'Contact BDO/Dept Head to add colleges.'}</p></div>`;
+    return;
+  }
+  grid.innerHTML=colleges.map(c=>`
+    <div class="sd-card">
+      <div class="sd-card-stripe stripe-green"></div>
+      <div class="sd-card-body" onclick="selectCollege('${c._id}','${escHtml(c.name)}')">
+        <div class="sd-card-title">🏫 ${escHtml(c.name)}</div>
+        <div class="sd-card-meta"><span>🏘️ ${escHtml(c.villageId?.name||'')}</span></div>
+        <div class="sd-card-foot" onclick="event.stopPropagation()">
+          <span class="sd-count-badge">👨‍🎓 ${c.studentCount||0} student${c.studentCount!==1?'s':''}</span>
+          <div style="display:flex;gap:.35rem;align-items:center">
+            ${canManageCollege?`<button class="btn-sm btn-sm-edit" onclick="openEditCollege('${c._id}','${escHtml(c.name)}');event.stopPropagation()">✏️</button>${ROLE==='BDO'?`<button class="btn-sm btn-sm-del" onclick="deleteCollege('${c._id}','${escHtml(c.name)}');event.stopPropagation()">🗑</button>`:''}`:''}
+            <button class="btn-sm btn-sm-edit" onclick="selectCollege('${c._id}','${escHtml(c.name)}')">Open →</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function selectCollege(id,name) { selectedCollege={_id:id,name}; loadStudents(id); }
+function openAddCollege() {
+  editingCollegeId=null;
+  document.getElementById('cModalTitle').textContent='Add College';
+  document.getElementById('c_id').value=document.getElementById('c_name').value='';
+  document.getElementById('c_village_display').value=selectedVillage.name;
+  document.getElementById('cModalAlert').className='pm-alert';
+  document.getElementById('cSaveBtn').textContent='Save College';
+  openModal('collegeModal'); setTimeout(()=>document.getElementById('c_name').focus(),100);
+}
+function openEditCollege(id,name) {
+  editingCollegeId=id;
+  document.getElementById('cModalTitle').textContent='Edit College';
+  document.getElementById('c_id').value=id; document.getElementById('c_name').value=name;
+  document.getElementById('c_village_display').value=selectedVillage.name;
+  document.getElementById('cModalAlert').className='pm-alert';
+  document.getElementById('cSaveBtn').textContent='Update College';
+  openModal('collegeModal');
+}
+async function saveCollege() {
+  const name=document.getElementById('c_name').value.trim();
+  const al=document.getElementById('cModalAlert'), btn=document.getElementById('cSaveBtn');
+  if (!name) { al.className='pm-alert err'; al.textContent='College name required'; return; }
+  al.className='pm-alert'; btn.disabled=true; btn.textContent='Saving…';
+  const data=editingCollegeId
+    ? await apiPut(`/colleges/${editingCollegeId}`,{name,villageId:selectedVillage._id})
+    : await apiPost('/colleges',{name,villageId:selectedVillage._id});
+  btn.disabled=false; btn.textContent=editingCollegeId?'Update College':'Save College';
+  if (data?.success) { showToast(data.message,'success'); closeModal('collegeModal'); loadColleges(selectedVillage._id); }
+  else { al.className='pm-alert err'; al.textContent=data?.message||'Error'; }
+}
+async function deleteCollege(id,name) {
+  if (!confirm(`Delete college "${name}"?`)) return;
+  const data=await apiFetch(`/colleges/${id}`,{method:'DELETE'});
+  if (data?.success) { showToast(data.message,'success'); loadColleges(selectedVillage._id); }
+  else showToast(data?.message||'Error','error');
+}
+
+// ── Students ──
+async function loadStudents(collegeId) {
+  showView('Students');
+  document.getElementById('studentTableWrap').innerHTML=`<div style="padding:2rem;text-align:center;color:#94A3B8">⏳ Loading…</div>`;
+  const data=await apiGet(`/students?collegeId=${collegeId}`);
+  if (!data?.success) { document.getElementById('studentTableWrap').innerHTML=`<p style="color:#DC2626;padding:1rem">❌ Failed to load</p>`; return; }
+  allStudents=data.data; filterStudents();
+}
+function filterStudents() {
+  const q=document.getElementById('studentSearch').value.toLowerCase().trim();
+  const list=q?allStudents.filter(s=>s.name.toLowerCase().includes(q)||s.class.toLowerCase().includes(q)):allStudents;
+  document.getElementById('sCount').textContent=`${list.length} student${list.length!==1?'s':''}`;
+  renderStudentTable(list);
+}
+function renderStudentTable(students) {
+  const wrap=document.getElementById('studentTableWrap');
+  if (!students.length) {
+    wrap.innerHTML=`<div style="text-align:center;padding:3rem;color:#94A3B8"><div style="font-size:2.8rem;margin-bottom:.6rem">👨‍🎓</div><h3 style="font-size:.95rem;font-weight:600;color:#374151;margin-bottom:.25rem">${allStudents.length?'No match':'No students yet'}</h3><p style="font-size:.8rem">${canAddStudent?'Use "Add Student" button.':'No students recorded.'}</p></div>`;
+    return;
+  }
+  const rows=students.map(s=>{
+    const img=s.profileImage
+      ?`<img src="${s.profileImage}" class="student-img" alt="${escHtml(s.name)}">`
+      :`<span class="student-img-placeholder">${s.name.charAt(0).toUpperCase()}</span>`;
+    const acts=[];
+    if (canAddStudent) acts.push(`<button class="btn-sm btn-sm-edit" onclick="openEditStudent('${s._id}')">✏️ Edit</button>`);
+    if (canDeleteStudent) acts.push(`<button class="btn-sm btn-sm-del" onclick="deleteStudent('${s._id}','${escHtml(s.name)}')">🗑</button>`);
+    return `<tr>
+      <td>${img}</td>
+      <td style="font-weight:600;color:#1E293B">${escHtml(s.name)}</td>
+      <td><span class="aadhaar-chip">${escHtml(s.aadhaarNumber)}</span></td>
+      <td>${escHtml(s.class)}</td>
+      <td><span class="medium-chip">${escHtml(s.medium)}</span></td>
+      <td>${acts.join(' ')||'<span style="color:#94A3B8;font-size:.8rem">View only</span>'}</td>
+    </tr>`;
+  });
+  wrap.innerHTML=`<table class="sd-table"><thead><tr><th>Photo</th><th>Name</th><th>Aadhaar</th><th>Class</th><th>Medium</th><th>Actions</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+// ── Student modal ──
+function openAddStudent() {
+  editingStudentId=null;
+  document.getElementById('sModalTitle').textContent='Add Student';
+  document.getElementById('s_id').value=document.getElementById('s_name').value=document.getElementById('s_aadhaar').value=document.getElementById('s_class').value='';
+  document.getElementById('s_medium').value='';
+  document.getElementById('s_image').value='';
+  document.getElementById('imgPreviewWrap').innerHTML='📷';
+  document.getElementById('s_village_display').value=selectedVillage.name;
+  document.getElementById('sModalAlert').className='pm-alert';
+  document.getElementById('sSaveBtn').textContent='Save Student';
+  populateCollegeDropdown(selectedCollege._id);
+  openModal('studentModal');
+  setTimeout(()=>document.getElementById('s_name').focus(),100);
+}
+async function openEditStudent(id) {
+  const data=await apiGet(`/students/${id}`);
+  if (!data?.success) { showToast('Failed to load','error'); return; }
+  const s=data.data;
+  editingStudentId=id;
+  document.getElementById('sModalTitle').textContent='Edit Student';
+  document.getElementById('s_id').value=s._id;
+  document.getElementById('s_name').value=s.name;
+  document.getElementById('s_aadhaar').value=s.aadhaarNumber;
+  document.getElementById('s_class').value=s.class;
+  document.getElementById('s_medium').value=s.medium;
+  document.getElementById('s_image').value='';
+  document.getElementById('s_village_display').value=s.villageId?.name||selectedVillage.name;
+  document.getElementById('sModalAlert').className='pm-alert';
+  document.getElementById('sSaveBtn').textContent='Update Student';
+  document.getElementById('imgPreviewWrap').innerHTML=s.profileImage
+    ?`<img src="${s.profileImage}" style="width:100%;height:100%;object-fit:cover">`
+    :'📷';
+  populateCollegeDropdown(s.collegeId?._id||selectedCollege._id);
+  openModal('studentModal');
+}
+async function populateCollegeDropdown(selId) {
+  const sel=document.getElementById('s_college');
+  sel.innerHTML='<option value="">Loading…</option>';
+  const data=await apiGet(`/colleges?villageId=${selectedVillage._id}`);
+  if (!data?.success) { sel.innerHTML='<option value="">Error</option>'; return; }
+  sel.innerHTML=data.data.map(c=>`<option value="${c._id}"${c._id===selId?' selected':''}>${escHtml(c.name)}</option>`).join('');
+}
+async function saveStudent() {
+  const al=document.getElementById('sModalAlert'), btn=document.getElementById('sSaveBtn');
+  const name=document.getElementById('s_name').value.trim();
+  const aadhaar=document.getElementById('s_aadhaar').value.trim();
+  const cls=document.getElementById('s_class').value.trim();
+  const medium=document.getElementById('s_medium').value;
+  const college=document.getElementById('s_college').value;
+  const imgFile=document.getElementById('s_image').files[0];
+  if (!name)    { al.className='pm-alert err'; al.textContent='Name required'; return; }
+  if (!aadhaar) { al.className='pm-alert err'; al.textContent='Aadhaar required'; return; }
+  if (!cls)     { al.className='pm-alert err'; al.textContent='Class required'; return; }
+  if (!medium)  { al.className='pm-alert err'; al.textContent='Medium required'; return; }
+  if (!college) { al.className='pm-alert err'; al.textContent='College required'; return; }
+  const digits=aadhaar.replace(/\D/g,'');
+  if (!aadhaar.startsWith('XXXX')&&digits.length!==12) { al.className='pm-alert err'; al.textContent='Aadhaar must be 12 digits'; return; }
+  al.className='pm-alert'; btn.disabled=true; btn.textContent='Saving…';
+  const fd=new FormData();
+  fd.append('name',name); fd.append('aadhaarNumber',aadhaar); fd.append('class',cls);
+  fd.append('medium',medium); fd.append('villageId',selectedVillage._id); fd.append('collegeId',college);
+  if (imgFile) fd.append('profileImage',imgFile);
+  let data;
+  if (editingStudentId) {
+    const res=await fetch(`${window.location.origin}/api/students/${editingStudentId}`,{method:'PUT',headers:{Authorization:`Bearer ${getToken()}`},body:fd});
+    data=await res.json();
+  } else { data=await apiUpload('/students',fd); }
+  btn.disabled=false; btn.textContent=editingStudentId?'Update Student':'Save Student';
+  if (data?.success) { showToast(data.message,'success'); closeModal('studentModal'); loadStudents(selectedCollege._id); }
+  else { al.className='pm-alert err'; al.textContent=data?.message||'Error saving'; }
+}
+async function deleteStudent(id,name) {
+  if (!confirm(`Delete student "${name}"?`)) return;
+  const data=await apiFetch(`/students/${id}`,{method:'DELETE'});
+  if (data?.success) { showToast(data.message,'success'); loadStudents(selectedCollege._id); }
+  else showToast(data?.message||'Error','error');
+}
+function previewImage(input) {
+  const wrap=document.getElementById('imgPreviewWrap');
+  if (input.files&&input.files[0]) { const r=new FileReader(); r.onload=e=>{wrap.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;}; r.readAsDataURL(input.files[0]); }
+}
+function formatAadhaarInput(input) {
+  if (input.value.startsWith('X')) return;
+  input.value=input.value.replace(/\D/g,'').slice(0,12);
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+loadVillages();
+</script>
+</body>
+</html>

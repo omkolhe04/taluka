@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Villages — BDO Smart Governance Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gov-navy:    #003087;
+  --gov-saffron: #FF6200;
+  --gov-green:   #138808;
+  --gov-white:   #FFFFFF;
+  --gov-cream:   #F5F0E8;
+  --gov-light:   #EEF2F8;
+  --gov-border:  #C8D6E8;
+  --gov-text:    #1A2840;
+  --gov-muted:   #5A6A82;
+  --gov-accent:  #0057A8;
+  --gov-gold:    #C8940A;
+  --shadow-sm:   0 1px 4px rgba(0,48,135,.10);
+  --shadow-md:   0 3px 12px rgba(0,48,135,.14);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--gov-cream); color: var(--gov-text); }
+
+/* ─── HEADER ─── */
+.gov-header-strip {
+  background: linear-gradient(135deg, var(--gov-navy) 0%, #004AAD 100%);
+  padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between;
+  height: 64px; border-bottom: 3px solid var(--gov-saffron);
+}
+.gov-header-left { display: flex; align-items: center; gap: 1rem; }
+.gov-emblem { width: 46px; height: 46px; background: var(--gov-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; border: 2px solid var(--gov-saffron); }
+.gov-title-block .gov-title-hi  { font-family: 'Noto Serif', serif; font-size: .78rem; color: rgba(255,255,255,.75); letter-spacing: .04em; }
+.gov-title-block .gov-title-en  { font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.gov-title-block .gov-title-sub { font-size: .7rem; color: rgba(255,255,255,.65); margin-top: .1rem; }
+.gov-header-right { display: flex; align-items: center; gap: 1rem; }
+.gov-flag-strip { display: flex; gap: 3px; }
+.gov-flag-strip span { display: block; width: 6px; height: 30px; border-radius: 2px; }
+.gov-topbar-btn { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); color: #fff; padding: .35rem .85rem; border-radius: 4px; font-size: .78rem; cursor: pointer; font-family: 'Noto Sans', sans-serif; display: flex; align-items: center; gap: .4rem; transition: background .18s; }
+.gov-topbar-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ─── NAV ─── */
+.gov-navbar { background: var(--gov-accent); display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 2px solid var(--gov-green); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,48,135,.18); overflow-x: auto; }
+.gov-nav-item { padding: .75rem 1.1rem; color: rgba(255,255,255,.82); font-size: .82rem; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all .18s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: .4rem; }
+.gov-nav-item:hover { color: #fff; background: rgba(255,255,255,.1); }
+.gov-nav-item.active { color: #fff; border-bottom-color: var(--gov-saffron); font-weight: 700; }
+.gov-nav-sep { width: 1px; background: rgba(255,255,255,.2); height: 20px; margin: 0 .25rem; flex-shrink: 0; }
+
+/* ─── BREADCRUMB ─── */
+.gov-breadcrumb { background: var(--gov-white); border-bottom: 1px solid var(--gov-border); padding: .55rem 1.5rem; display: flex; align-items: center; gap: .4rem; font-size: .76rem; color: var(--gov-muted); }
+.gov-breadcrumb a { color: var(--gov-accent); text-decoration: none; }
+.gov-breadcrumb a:hover { text-decoration: underline; }
+
+/* ─── MAIN ─── */
+.main-content { padding: 1.5rem; }
+
+/* ─── PAGE HEADER ─── */
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.25rem; flex-wrap: wrap; gap: .75rem;
+  background: var(--gov-white); border: 1px solid var(--gov-border);
+  border-left: 4px solid var(--gov-navy); border-radius: 4px;
+  padding: 1rem 1.25rem; box-shadow: var(--shadow-sm);
+}
+.page-header-title h1 { font-size: 1.15rem; font-weight: 800; color: var(--gov-navy); margin-bottom: .15rem; text-transform: uppercase; letter-spacing: .04em; }
+.page-header-title p  { font-size: .76rem; color: var(--gov-muted); }
+
+/* ─── STAT CARDS ─── */
+.vg-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.vg-stat {
+  background: var(--gov-white); border: 1px solid var(--gov-border);
+  border-top: 3px solid var(--gov-navy); border-radius: 4px;
+  padding: 1rem 1.2rem; box-shadow: var(--shadow-sm);
+  cursor: pointer; transition: transform .18s, box-shadow .18s;
+}
+.vg-stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.vgs-icon { width: 36px; height: 36px; border-radius: 4px; background: var(--gov-light); border: 1px solid var(--gov-border); display: flex; align-items: center; justify-content: center; font-size: 1rem; margin-bottom: .65rem; }
+.vgs-val  { font-size: 1.7rem; font-weight: 800; color: var(--gov-navy); line-height: 1; margin-bottom: .25rem; }
+.vgs-lbl  { font-size: .7rem; font-weight: 700; color: var(--gov-muted); text-transform: uppercase; letter-spacing: .05em; }
+.vgs-trend { font-size: .7rem; font-weight: 700; margin-top: .35rem; color: var(--gov-green); }
+
+/* ─── NOTICE ─── */
+.vg-notice {
+  background: #E8F0FB; border: 1px solid #93B8E0;
+  border-left: 4px solid var(--gov-navy); border-radius: 4px;
+  padding: .85rem 1.1rem; font-size: .83rem; color: var(--gov-navy);
+  margin-bottom: 1.25rem; display: flex; gap: .65rem; align-items: flex-start;
+}
+.vg-notice-icon { font-size: .9rem; flex-shrink: 0; margin-top: .05rem; }
+
+/* ─── SECTION DIVIDER ─── */
+.section-title-row { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.section-title-row h2 { font-size: .78rem; font-weight: 700; color: var(--gov-navy); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+.section-title-row::after { content: ''; flex: 1; height: 1px; background: var(--gov-border); }
+
+/* ─── TOOLBAR ─── */
+.vg-toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: 1.1rem; flex-wrap: wrap; }
+.vg-search { flex: 1; min-width: 220px; max-width: 380px; position: relative; }
+.vg-search-icon { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--gov-muted); pointer-events: none; font-size: .85rem; }
+.vg-search input {
+  width: 100%; padding: .55rem .9rem .55rem 2.2rem;
+  border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-size: .84rem; font-family: 'Noto Sans', sans-serif;
+  color: var(--gov-text); background: var(--gov-light); outline: none; transition: border-color .2s;
+}
+.vg-search input:focus { border-color: var(--gov-navy); background: #fff; }
+.gov-select {
+  padding: .55rem .85rem; border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-size: .82rem; font-family: 'Noto Sans', sans-serif;
+  background: var(--gov-light); color: var(--gov-navy); cursor: pointer; outline: none; font-weight: 600;
+}
+.gov-select:focus { border-color: var(--gov-navy); }
+.vg-count { font-size: .78rem; color: var(--gov-muted); margin-left: auto; font-weight: 600;
+  background: var(--gov-light); border: 1px solid var(--gov-border); border-radius: 3px;
+  padding: .3rem .75rem; }
+
+/* ─── VILLAGE CARDS GRID ─── */
+.vg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1rem; }
+
+.vg-card {
+  background: var(--gov-white); border: 1px solid var(--gov-border);
+  border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-sm);
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+.vg-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #93B8E0; }
+
+.vg-card-stripe { height: 5px; }
+
+.vg-card-body { padding: 1rem 1.1rem; }
+
+.vg-card-name {
+  font-size: .95rem; font-weight: 700; color: var(--gov-navy);
+  margin-bottom: .65rem; display: flex; align-items: center; gap: .5rem;
+  text-transform: capitalize;
+}
+.vg-name-badge {
+  width: 34px; height: 34px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 800; color: #fff;
+  border: 1px solid rgba(0,0,0,.1);
+}
+
+.vg-card-meta { display: flex; flex-direction: column; gap: .32rem; margin-bottom: .85rem; }
+.vg-card-meta-item { font-size: .76rem; color: var(--gov-muted); display: flex; align-items: center; gap: .4rem; }
+.meta-icon { font-size: .78rem; flex-shrink: 0; }
+
+.vg-card-foot {
+  display: flex; gap: .5rem; justify-content: flex-end;
+  padding-top: .75rem; border-top: 1px solid var(--gov-light);
+}
+.btn-edit-v {
+  padding: .32rem .8rem; background: var(--gov-light);
+  border: 1.5px solid var(--gov-border); color: var(--gov-accent);
+  border-radius: 3px; font-size: .75rem; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans', sans-serif; transition: all .15s; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-edit-v:hover { background: var(--gov-navy); color: #fff; border-color: var(--gov-navy); }
+.btn-del-v {
+  padding: .32rem .8rem; background: #FFEBEE;
+  border: 1.5px solid #FFCDD2; color: #B71C1C;
+  border-radius: 3px; font-size: .75rem; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans', sans-serif; transition: all .15s; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-del-v:hover { background: #B71C1C; color: #fff; border-color: #B71C1C; }
+
+/* Active badge */
+.vg-active-badge {
+  margin-left: auto; font-size: .67rem; font-weight: 700; padding: .15rem .55rem;
+  border-radius: 3px; text-transform: uppercase; letter-spacing: .04em;
+}
+.badge-active   { background: #E6F4EA; color: #1B5E20; border: 1px solid #A8D5AF; }
+.badge-inactive { background: var(--gov-light); color: var(--gov-muted); border: 1px solid var(--gov-border); }
+
+/* ─── EMPTY STATE ─── */
+.vg-empty {
+  text-align: center; padding: 3.5rem 1rem; grid-column: 1 / -1;
+  background: var(--gov-white); border: 1px dashed var(--gov-border);
+  border-radius: 4px; color: var(--gov-muted);
+}
+.vg-empty-icon { font-size: 3rem; margin-bottom: .75rem; }
+.vg-empty h3 { font-size: .92rem; font-weight: 700; color: var(--gov-navy); margin-bottom: .35rem; }
+.vg-empty p  { font-size: .8rem; }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,48,135,.45); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.gov-modal {
+  background: var(--gov-white); border-radius: 6px; width: 90%; max-width: 460px;
+  box-shadow: 0 8px 32px rgba(0,48,135,.2); border: 1px solid var(--gov-border); overflow: hidden;
+}
+.modal-header {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .85rem 1.2rem; display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { font-size: .9rem; font-weight: 700; color: #fff; }
+.modal-close-btn { background: rgba(255,255,255,.15); border: none; color: #fff; width: 26px; height: 26px; border-radius: 3px; cursor: pointer; font-size: .9rem; }
+.modal-close-btn:hover { background: rgba(255,255,255,.3); }
+.modal-body { padding: 1.2rem; }
+.modal-footer { display: flex; gap: .75rem; justify-content: flex-end; padding: .9rem 1.2rem; border-top: 1px solid var(--gov-border); background: var(--gov-light); }
+
+.form-group { margin-bottom: .9rem; }
+.form-group label { font-size: .8rem; font-weight: 700; display: block; margin-bottom: .35rem; color: var(--gov-navy); text-transform: uppercase; letter-spacing: .03em; }
+.form-hint { font-size: .72rem; color: var(--gov-muted); margin-top: .25rem; }
+.gov-input {
+  width: 100%; padding: .6rem .85rem; border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-family: 'Noto Sans', sans-serif; font-size: .875rem; outline: none;
+  color: var(--gov-text); background: var(--gov-light); transition: border-color .2s;
+}
+.gov-input:focus { border-color: var(--gov-navy); background: #fff; }
+
+.btn-modal-cancel {
+  padding: .55rem 1.1rem; background: var(--gov-white); border: 1.5px solid var(--gov-border);
+  border-radius: 4px; font-size: .83rem; font-weight: 600; color: var(--gov-muted); cursor: pointer;
+  font-family: 'Noto Sans', sans-serif; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-modal-cancel:hover { border-color: var(--gov-navy); color: var(--gov-navy); }
+.btn-modal-submit {
+  padding: .55rem 1.2rem; background: var(--gov-navy); color: #fff; border: none;
+  border-radius: 4px; font-size: .83rem; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans', sans-serif; text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-modal-submit:hover { background: var(--gov-accent); }
+.btn-modal-submit:disabled { background: var(--gov-muted); cursor: not-allowed; }
+
+.alert-error   { background: #FFEBEE; border: 1px solid #FFCDD2; border-left: 4px solid #CC1B1B; color: #B71C1C; padding: .55rem .85rem; border-radius: 4px; font-size: .82rem; font-weight: 600; margin-bottom: .85rem; }
+.alert-success { background: #E6F4EA; border: 1px solid #A8D5AF; border-left: 4px solid #138808; color: #1B5E20; padding: .55rem .85rem; border-radius: 4px; font-size: .82rem; font-weight: 600; margin-bottom: .85rem; }
+
+/* ─── ADD BUTTON ─── */
+.btn-add-village {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .55rem 1.1rem; background: var(--gov-navy); color: #fff;
+  border: none; border-radius: 4px; font-size: .82rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: background .18s; box-shadow: var(--shadow-sm);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-add-village:hover { background: var(--gov-accent); }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:640px) {
+  .vg-stats { grid-template-columns: repeat(2, 1fr); }
+  .main-content { padding: 1rem; }
+  .page-header { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header class="gov-header-strip">
+  <div class="gov-header-left">
+    <div class="gov-emblem">🏛️</div>
+    <div class="gov-title-block">
+      <div class="gov-title-hi">भारत सरकार — BDO स्मार्ट गवर्नेंस पोर्टल</div>
+      <div class="gov-title-en">BDO Smart Governance Portal</div>
+      <div class="gov-title-sub">Ministry of Panchayati Raj &nbsp;|&nbsp; Government of India</div>
+    </div>
+  </div>
+  <div class="gov-header-right">
+    <div class="gov-flag-strip">
+      <span style="background:#FF6200"></span>
+      <span style="background:#FFFFFF"></span>
+      <span style="background:#138808"></span>
+    </div>
+    <button class="gov-topbar-btn">👤 <span id="topbarUserName">Admin</span></button>
+    <button class="gov-topbar-btn" onclick="window.location.href='notifications.html'">🔔</button>
+    <button class="gov-topbar-btn" onclick="window.location.href='login.html'">⎋ Logout</button>
+  </div>
+</header>
+
+<!-- ─── NAV ─── -->
+<nav class="gov-navbar">
+  <a href="dashboard.html"    class="gov-nav-item">🏠 Dashboard</a>
+  <div class="gov-nav-sep"></div>
+  <a href="villages.html"     class="gov-nav-item active">🏘 Villages</a>
+  <div class="gov-nav-sep"></div>
+  <a href="employees.html"    class="gov-nav-item">👥 Employees</a>
+  <div class="gov-nav-sep"></div>
+  <a href="departments.html"  class="gov-nav-item">🏢 Departments</a>
+  <div class="gov-nav-sep"></div>
+  <a href="kyc.html"          class="gov-nav-item">🧾 KYC Records</a>
+  <div class="gov-nav-sep"></div>
+  <a href="revenue.html"      class="gov-nav-item">💰 Revenue</a>
+  <div class="gov-nav-sep"></div>
+  <a href="bills.html"        class="gov-nav-item">📋 Bills</a>
+  <div class="gov-nav-sep"></div>
+  <a href="verification.html" class="gov-nav-item">✅ Verification</a>
+  <div class="gov-nav-sep"></div>
+  <a href="analytics.html"    class="gov-nav-item">📊 Analytics</a>
+</nav>
+
+<!-- ─── BREADCRUMB ─── */
+<div class="gov-breadcrumb">
+  <a href="dashboard.html">Home</a>
+  <span>›</span>
+  <span>Administration</span>
+  <span>›</span>
+  <span>Manage Villages</span>
+</div>
+
+<!-- ─── MAIN ─── -->
+<main class="main-content">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-title">
+      <h1>🏘 Manage Villages</h1>
+      <p>BDO-controlled village master list · Only listed villages are valid for Excel uploads &amp; revenue entries</p>
+    </div>
+    <button class="btn-add-village" onclick="openAddModal()">＋ Add New Village</button>
+  </div>
+
+  <!-- Notice -->
+  <div class="vg-notice">
+    <span class="vg-notice-icon">ℹ️</span>
+    <span>Villages listed here are the <strong>only valid entries</strong> for Excel uploads. If a village name in an uploaded file does not exactly match an entry below (case-insensitive), the upload will be <strong>rejected by the system</strong>.</span>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="section-title-row"><h2>📊 Village Statistics</h2></div>
+  <div class="vg-stats">
+    <div class="vg-stat">
+      <div class="vgs-icon">🏘</div>
+      <div class="vgs-val" id="statTotal">—</div>
+      <div class="vgs-lbl">Total Villages</div>
+      <div class="vgs-trend" id="statTotalTrend">&nbsp;</div>
+    </div>
+    <div class="vg-stat" style="border-top-color:var(--gov-green)">
+      <div class="vgs-icon" style="background:#E6F4EA">✅</div>
+      <div class="vgs-val" id="statActive" style="color:var(--gov-green)">—</div>
+      <div class="vgs-lbl">Active Villages</div>
+      <div class="vgs-trend" id="statActiveTrend">&nbsp;</div>
+    </div>
+    <div class="vg-stat" style="border-top-color:var(--gov-gold)">
+      <div class="vgs-icon" style="background:#FFFBEA">🗺</div>
+      <div class="vgs-val" id="statTalukas" style="color:var(--gov-gold)">—</div>
+      <div class="vgs-lbl">Talukas Covered</div>
+      <div class="vgs-trend">&nbsp;</div>
+    </div>
+    <div class="vg-stat" style="border-top-color:var(--gov-saffron)">
+      <div class="vgs-icon" style="background:#FFF3EC">📋</div>
+      <div class="vgs-val" id="statRecent" style="color:var(--gov-saffron)">—</div>
+      <div class="vgs-lbl">Added This Month</div>
+      <div class="vgs-trend">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="section-title-row"><h2>🏘 Village Master List</h2></div>
+  <div class="vg-toolbar">
+    <div class="vg-search">
+      <span class="vg-search-icon">🔍</span>
+      <input type="text" id="villageSearch" placeholder="Search by village name or taluka…" oninput="filterVillages()">
+    </div>
+    <select class="gov-select" id="talukaFilter" onchange="filterVillages()">
+      <option value="">All Talukas</option>
+    </select>
+    <select class="gov-select" id="statusFilter" onchange="filterVillages()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <span class="vg-count" id="vCount">0 villages</span>
+  </div>
+
+  <!-- Village Cards Grid -->
+  <div class="vg-grid" id="villageGrid">
+    <div style="color:var(--gov-muted);font-size:.875rem;grid-column:1/-1;padding:1.5rem;text-align:center;background:var(--gov-white);border:1px solid var(--gov-border);border-radius:4px">
+      ⏳ Loading villages…
+    </div>
+  </div>
+
+</main>
+
+<!-- ─── ADD / EDIT MODAL ─── -->
+<div class="modal-overlay" id="villageModal">
+  <div class="gov-modal">
+    <div class="modal-header">
+      <h3 id="vmTitle">🏘 Add New Village</h3>
+      <button class="modal-close-btn" onclick="closeModal('villageModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="v_id">
+      <div id="vmAlert" style="display:none"></div>
+      <div class="form-group">
+        <label>Village Name *</label>
+        <input type="text" class="gov-input" id="v_name" placeholder="e.g. Dehu">
+        <p class="form-hint">Must match exactly what Data Entry operators type in Excel (case-insensitive matching)</p>
+      </div>
+      <div class="form-group">
+        <label>Taluka / Block</label>
+        <input type="text" class="gov-input" id="v_taluka" placeholder="e.g. Haveli">
+      </div>
+      <div class="form-group">
+        <label>District</label>
+        <input type="text" class="gov-input" id="v_district" placeholder="e.g. Pune">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal('villageModal')">Cancel</button>
+      <button class="btn-modal-submit" id="vmSaveBtn" onclick="saveVillage()">Save Village</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SCRIPTS ─── -->
+<script>
+let allVillages = [], editingId = null;
+
+const STRIPE_COLORS = [
+  '#003087','#138808','#FF6200','#C8940A','#0057A8','#7B1FA2','#C62828','#0891B2'
+];
+function vColor(name) {
+  let h = 0;
+  for (const c of (name || 'x')) h = (h * 31 + c.charCodeAt(0)) % STRIPE_COLORS.length;
+  return STRIPE_COLORS[h];
+}
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ── Load Villages ──
+async function loadVillages() {
+  // Fallback sample data if API unavailable
+  if (typeof apiGet === 'undefined') {
+    allVillages = [
+      { _id:'1', name:'Shivapur',    taluka:'Haveli',    district:'Pune', isActive:true,  createdAt:'2024-01-10', createdBy:{name:'BDO Admin'} },
+      { _id:'2', name:'Rampur',      taluka:'Haveli',    district:'Pune', isActive:true,  createdAt:'2024-01-12', createdBy:{name:'BDO Admin'} },
+      { _id:'3', name:'Bhilgaon',    taluka:'Maval',     district:'Pune', isActive:true,  createdAt:'2024-01-15', createdBy:{name:'BDO Admin'} },
+      { _id:'4', name:'Khed',        taluka:'Khed',      district:'Pune', isActive:true,  createdAt:'2024-01-18', createdBy:{name:'BDO Admin'} },
+      { _id:'5', name:'Talegaon',    taluka:'Maval',     district:'Pune', isActive:true,  createdAt:'2024-02-02', createdBy:{name:'BDO Admin'} },
+      { _id:'6', name:'Nandgaon',    taluka:'Shirur',    district:'Pune', isActive:true,  createdAt:'2024-02-05', createdBy:{name:'BDO Admin'} },
+      { _id:'7', name:'Warvand',     taluka:'Haveli',    district:'Pune', isActive:false, createdAt:'2024-02-08', createdBy:{name:'BDO Admin'} },
+      { _id:'8', name:'Dehu',        taluka:'Khed',      district:'Pune', isActive:true,  createdAt:'2024-02-14', createdBy:{name:'BDO Admin'} },
+      { _id:'9', name:'Uruli Kanchan',taluka:'Haveli',   district:'Pune', isActive:true,  createdAt:'2024-02-20', createdBy:{name:'BDO Admin'} },
+      { _id:'10',name:'Rajguru Nagar',taluka:'Khed',     district:'Pune', isActive:true,  createdAt:'2024-03-01', createdBy:{name:'BDO Admin'} },
+      { _id:'11',name:'Chakan',      taluka:'Khed',      district:'Pune', isActive:true,  createdAt:'2024-03-05', createdBy:{name:'BDO Admin'} },
+      { _id:'12',name:'Kolwadi',     taluka:'Shirur',    district:'Pune', isActive:true,  createdAt:'2024-03-10', createdBy:{name:'BDO Admin'} },
+    ];
+    renderStats();
+    populateTalukaFilter();
+    filterVillages();
+    return;
+  }
+  const data = await apiGet('/villages');
+  if (!data?.success) return;
+  allVillages = data.data;
+  renderStats();
+  populateTalukaFilter();
+  filterVillages();
+}
+
+function renderStats() {
+  const active   = allVillages.filter(v => v.isActive !== false).length;
+  const talukas  = new Set(allVillages.map(v => v.taluka).filter(Boolean)).size;
+  const now      = new Date();
+  const thisMonth = allVillages.filter(v => {
+    const d = new Date(v.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  document.getElementById('statTotal').textContent       = allVillages.length;
+  document.getElementById('statActive').textContent      = active;
+  document.getElementById('statTalukas').textContent     = talukas || '—';
+  document.getElementById('statRecent').textContent      = thisMonth;
+  document.getElementById('statTotalTrend').textContent  = active + ' active · ' + (allVillages.length - active) + ' inactive';
+  document.getElementById('statActiveTrend').textContent = ((active / (allVillages.length || 1)) * 100).toFixed(0) + '% coverage rate';
+}
+
+function populateTalukaFilter() {
+  const talukas = [...new Set(allVillages.map(v => v.taluka).filter(Boolean))].sort();
+  const sel = document.getElementById('talukaFilter');
+  sel.innerHTML = '<option value="">All Talukas</option>' +
+    talukas.map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join('');
+}
+
+function filterVillages() {
+  const q       = document.getElementById('villageSearch').value.toLowerCase().trim();
+  const taluka  = document.getElementById('talukaFilter').value;
+  const status  = document.getElementById('statusFilter').value;
+
+  let list = allVillages;
+  if (q)      list = list.filter(v => v.name.toLowerCase().includes(q) || (v.taluka||'').toLowerCase().includes(q));
+  if (taluka) list = list.filter(v => v.taluka === taluka);
+  if (status === 'active')   list = list.filter(v => v.isActive !== false);
+  if (status === 'inactive') list = list.filter(v => v.isActive === false);
+
+  document.getElementById('vCount').textContent = list.length + ' village' + (list.length !== 1 ? 's' : '');
+  renderCards(list);
+}
+
+function renderCards(list) {
+  const grid = document.getElementById('villageGrid');
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="vg-empty">
+        <div class="vg-empty-icon">🏘</div>
+        <h3>${allVillages.length ? 'No villages match your filters' : 'No villages added yet'}</h3>
+        <p>${allVillages.length ? 'Try clearing filters or a different search term.' : 'Add your first village to enable Excel uploads.'}</p>
+        ${!allVillages.length ? `<button class="btn-add-village" onclick="openAddModal()" style="margin-top:1rem">＋ Add First Village</button>` : ''}
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((v, i) => {
+    const color  = vColor(v.name);
+    const active = v.isActive !== false;
+    return `
+    <div class="vg-card">
+      <div class="vg-card-stripe" style="background:linear-gradient(90deg,${color},${vColor(v.name + 'x')})"></div>
+      <div class="vg-card-body">
+        <div class="vg-card-name">
+          <div class="vg-name-badge" style="background:${color}">${initials(v.name)}</div>
+          <span>${escHtml(v.name)}</span>
+          <span class="vg-active-badge ${active ? 'badge-active' : 'badge-inactive'}">${active ? 'Active' : 'Inactive'}</span>
+        </div>
+        <div class="vg-card-meta">
+          ${v.taluka   ? `<span class="vg-card-meta-item"><span class="meta-icon">📍</span> ${escHtml(v.taluka)} Taluka</span>` : ''}
+          ${v.district ? `<span class="vg-card-meta-item"><span class="meta-icon">🗺</span> ${escHtml(v.district)} District</span>` : ''}
+          <span class="vg-card-meta-item"><span class="meta-icon">👤</span> Added by ${escHtml(v.createdBy?.name || 'BDO Admin')}</span>
+          <span class="vg-card-meta-item"><span class="meta-icon">📅</span> ${fmtDate(v.createdAt)}</span>
+        </div>
+        <div class="vg-card-foot">
+          <button class="btn-edit-v" onclick="openEditModal('${escHtml(v._id)}','${escHtml(v.name)}','${escHtml(v.taluka||'')}','${escHtml(v.district||'')}')">✏ Edit</button>
+          <button class="btn-del-v"  onclick="deleteVillage('${escHtml(v._id)}','${escHtml(v.name)}')">🗑 Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Modal helpers ──
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+);
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('vmTitle').textContent = '🏘 Add New Village';
+  document.getElementById('v_id').value = document.getElementById('v_name').value =
+    document.getElementById('v_taluka').value = document.getElementById('v_district').value = '';
+  const al = document.getElementById('vmAlert');
+  al.style.display = 'none'; al.className = '';
+  document.getElementById('vmSaveBtn').textContent = 'Save Village';
+  openModal('villageModal');
+  setTimeout(() => document.getElementById('v_name').focus(), 120);
+}
+
+function openEditModal(id, name, taluka, district) {
+  editingId = id;
+  document.getElementById('vmTitle').textContent        = '✏ Edit Village';
+  document.getElementById('v_id').value                 = id;
+  document.getElementById('v_name').value               = name;
+  document.getElementById('v_taluka').value             = taluka;
+  document.getElementById('v_district').value           = district;
+  const al = document.getElementById('vmAlert');
+  al.style.display = 'none'; al.className = '';
+  document.getElementById('vmSaveBtn').textContent = 'Update Village';
+  openModal('villageModal');
+}
+
+async function saveVillage() {
+  const name     = document.getElementById('v_name').value.trim();
+  const taluka   = document.getElementById('v_taluka').value.trim();
+  const district = document.getElementById('v_district').value.trim();
+  const al       = document.getElementById('vmAlert');
+
+  if (!name) {
+    al.style.display = 'block'; al.className = 'alert-error';
+    al.textContent = 'Village name is required.'; return;
+  }
+  al.style.display = 'none';
+  const btn = document.getElementById('vmSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  if (typeof apiPost === 'undefined') {
+    // Fallback demo
+    if (editingId) {
+      const v = allVillages.find(v => v._id === editingId);
+      if (v) { v.name = name; v.taluka = taluka; v.district = district; }
+    } else {
+      allVillages.push({ _id: Date.now().toString(), name, taluka, district, isActive: true, createdAt: new Date().toISOString(), createdBy: { name: 'BDO Admin' } });
+    }
+    btn.disabled = false; btn.textContent = editingId ? 'Update Village' : 'Save Village';
+    closeModal('villageModal');
+    renderStats(); populateTalukaFilter(); filterVillages();
+    return;
+  }
+
+  const data = editingId
+    ? await apiPut(`/villages/${editingId}`, { name, taluka, district })
+    : await apiPost('/villages', { name, taluka, district });
+
+  btn.disabled = false; btn.textContent = editingId ? 'Update Village' : 'Save Village';
+  if (data?.success) {
+    closeModal('villageModal');
+    if (typeof showToast === 'function') showToast(data.message, 'success');
+    loadVillages();
+  } else {
+    al.style.display = 'block'; al.className = 'alert-error';
+    al.textContent = data?.message || 'Error saving village.';
+  }
+}
+
+async function deleteVillage(id, name) {
+  if (!confirm(`Delete village "${name}"?\n\nExisting revenue data will remain, but new Excel uploads with this village name will be rejected.`)) return;
+
+  if (typeof apiFetch === 'undefined') {
+    allVillages = allVillages.filter(v => v._id !== id);
+    renderStats(); populateTalukaFilter(); filterVillages(); return;
+  }
+  const data = await apiFetch(`/villages/${id}`, { method: 'DELETE' });
+  if (data?.success) {
+    if (typeof showToast === 'function') showToast(data.message, 'success');
+    loadVillages();
+  } else {
+    if (typeof showToast === 'function') showToast(data?.message || 'Error deleting', 'error');
+  }
+}
+
+document.getElementById('v_name').addEventListener('keydown', e => { if (e.key === 'Enter') saveVillage(); });
+
+loadVillages();
+</script>
+</body>
+</html>

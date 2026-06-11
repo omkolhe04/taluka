@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Departments — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+:root {
+  --gov-navy:    #003087;
+  --gov-saffron: #FF6200;
+  --gov-green:   #138808;
+  --gov-white:   #FFFFFF;
+  --gov-cream:   #F5F0E8;
+  --gov-light:   #EEF2F8;
+  --gov-border:  #C8D6E8;
+  --gov-text:    #1A2840;
+  --gov-muted:   #5A6A82;
+  --gov-accent:  #0057A8;
+  --gov-gold:    #C8940A;
+  --shadow-sm:   0 1px 4px rgba(0,48,135,.10);
+  --shadow-md:   0 3px 12px rgba(0,48,135,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--gov-cream); color: var(--gov-text); }
+
+/* ─── HEADER ─── */
+.gov-header-strip {
+  background: linear-gradient(135deg, var(--gov-navy) 0%, #004AAD 100%);
+  padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between;
+  height: 64px; border-bottom: 3px solid var(--gov-saffron);
+}
+.gov-header-left { display: flex; align-items: center; gap: 1rem; }
+.gov-emblem { width: 46px; height: 46px; background: var(--gov-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; border: 2px solid var(--gov-saffron); }
+.gov-title-block .gov-title-hi  { font-family: 'Noto Serif', serif; font-size: .78rem; color: rgba(255,255,255,.75); letter-spacing: .04em; }
+.gov-title-block .gov-title-en  { font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.gov-title-block .gov-title-sub { font-size: .7rem; color: rgba(255,255,255,.65); margin-top: .1rem; }
+.gov-header-right { display: flex; align-items: center; gap: 1rem; }
+.gov-flag-strip { display: flex; gap: 3px; }
+.gov-flag-strip span { display: block; width: 6px; height: 30px; border-radius: 2px; }
+.gov-topbar-btn { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); color: #fff; padding: .35rem .85rem; border-radius: 4px; font-size: .78rem; cursor: pointer; font-family: 'Noto Sans', sans-serif; display: flex; align-items: center; gap: .4rem; transition: background .18s; }
+.gov-topbar-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ─── NAV ─── */
+.gov-navbar { background: var(--gov-accent); display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 2px solid var(--gov-green); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,48,135,.18); overflow-x: auto; }
+.gov-nav-item { padding: .75rem 1.1rem; color: rgba(255,255,255,.82); font-size: .82rem; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all .18s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: .4rem; }
+.gov-nav-item:hover { color: #fff; background: rgba(255,255,255,.1); }
+.gov-nav-item.active { color: #fff; border-bottom-color: var(--gov-saffron); font-weight: 700; }
+.gov-nav-sep { width: 1px; background: rgba(255,255,255,.2); height: 20px; margin: 0 .25rem; flex-shrink: 0; }
+
+/* ─── BREADCRUMB ─── */
+.gov-breadcrumb { background: var(--gov-white); border-bottom: 1px solid var(--gov-border); padding: .55rem 1.5rem; display: flex; align-items: center; gap: .4rem; font-size: .76rem; color: var(--gov-muted); }
+.gov-breadcrumb a { color: var(--gov-accent); text-decoration: none; }
+.gov-breadcrumb a:hover { text-decoration: underline; }
+
+/* ─── SPLIT LAYOUT ─── */
+.dept-split {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: calc(100vh - 130px);
+  overflow: hidden;
+}
+
+/* ─── LEFT PANEL ─── */
+.dept-left {
+  background: var(--gov-white);
+  border-right: 2px solid var(--gov-border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.dept-left-head {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .75rem 1.1rem;
+  flex-shrink: 0;
+}
+.dept-left-head h2 { font-size: .88rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .6rem; }
+.dept-search-wrap { position: relative; }
+.dept-search-wrap input {
+  width: 100%; padding: .5rem .85rem .5rem 2rem;
+  border: 1px solid rgba(255,255,255,.3); border-radius: 3px;
+  font-size: .82rem; font-family: 'Noto Sans', sans-serif;
+  color: var(--gov-text); background: rgba(255,255,255,.92); outline: none;
+  transition: border-color .2s;
+}
+.dept-search-wrap input:focus { border-color: var(--gov-saffron); background: #fff; }
+.dept-search-icon { position: absolute; left: .6rem; top: 50%; transform: translateY(-50%); color: var(--gov-muted); font-size: .8rem; pointer-events: none; }
+
+.dept-list { flex: 1; overflow-y: auto; padding: .4rem 0; }
+.dept-list::-webkit-scrollbar { width: 4px; }
+.dept-list::-webkit-scrollbar-thumb { background: var(--gov-border); border-radius: 2px; }
+
+.dept-item {
+  padding: .8rem 1.1rem; cursor: pointer;
+  border-bottom: 1px solid #EDF0F5;
+  border-left: 4px solid transparent;
+  display: flex; align-items: center; gap: .85rem;
+  transition: background .14s, border-color .14s;
+}
+.dept-item:last-child { border-bottom: none; }
+.dept-item:hover { background: var(--gov-light); }
+.dept-item.active { background: #EEF4FF; border-left-color: var(--gov-navy); }
+.dept-color-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.dept-item-name { font-size: .855rem; font-weight: 600; color: var(--gov-navy); margin-bottom: .2rem; }
+.dept-item.active .dept-item-name { color: var(--gov-navy); font-weight: 700; }
+.dept-item-meta { display: flex; gap: .85rem; font-size: .72rem; }
+.dept-item-meta .total  { color: var(--gov-muted); }
+.dept-item-meta .active-count { color: var(--gov-green); font-weight: 600; }
+
+.dept-left-foot { padding: .75rem 1rem; border-top: 2px solid var(--gov-border); background: var(--gov-light); flex-shrink: 0; }
+.btn-add-dept {
+  width: 100%; padding: .6rem;
+  background: var(--gov-white); border: 1.5px dashed var(--gov-border);
+  border-radius: 4px; font-size: .82rem; font-weight: 600;
+  color: var(--gov-navy); cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: all .18s; display: flex; align-items: center; justify-content: center; gap: .4rem;
+}
+.btn-add-dept:hover { background: var(--gov-light); border-color: var(--gov-navy); color: var(--gov-navy); }
+
+/* ─── RIGHT PANEL ─── */
+.dept-right { display: flex; flex-direction: column; overflow: hidden; background: var(--gov-cream); }
+
+.emp-panel-head {
+  background: var(--gov-white); border-bottom: 2px solid var(--gov-border);
+  padding: .75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.emp-panel-title h3 { font-size: .95rem; font-weight: 700; color: var(--gov-navy); margin-bottom: .1rem; }
+.emp-panel-title p  { font-size: .73rem; color: var(--gov-muted); }
+
+.btn-add-emp {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem 1.1rem; background: var(--gov-navy); color: #fff;
+  border: none; border-radius: 4px; font-size: .82rem; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans', sans-serif;
+  transition: background .18s; box-shadow: var(--shadow-sm);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.btn-add-emp:hover { background: var(--gov-accent); }
+
+.emp-toolbar {
+  padding: .75rem 1.5rem; display: flex; gap: .75rem; align-items: center;
+  background: var(--gov-white); border-bottom: 1px solid var(--gov-border); flex-shrink: 0;
+}
+.emp-search-wrap { flex: 1; position: relative; }
+.emp-search-wrap input {
+  width: 100%; padding: .5rem .85rem .5rem 2.2rem;
+  border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-size: .84rem; font-family: 'Noto Sans', sans-serif;
+  background: var(--gov-light); color: var(--gov-text); outline: none; transition: border-color .2s;
+}
+.emp-search-wrap input:focus { border-color: var(--gov-navy); background: #fff; }
+.emp-search-wrap .si { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: var(--gov-muted); pointer-events: none; }
+
+.gov-select {
+  padding: .5rem .85rem; border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-size: .82rem; font-family: 'Noto Sans', sans-serif;
+  background: var(--gov-light); color: var(--gov-navy); cursor: pointer; outline: none; font-weight: 600;
+}
+.gov-select:focus { border-color: var(--gov-navy); }
+
+/* ─── EMPLOYEE TABLE ─── */
+.emp-table-wrap { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+.emp-table-wrap::-webkit-scrollbar { width: 4px; }
+.emp-table-wrap::-webkit-scrollbar-thumb { background: var(--gov-border); border-radius: 2px; }
+
+.emp-table { width: 100%; border-collapse: collapse; background: var(--gov-white); border: 1px solid var(--gov-border); border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.emp-table thead tr { background: #EEF2F8; }
+.emp-table th {
+  padding: .65rem 1rem; font-size: .72rem; font-weight: 700; color: var(--gov-navy);
+  text-transform: uppercase; letter-spacing: .05em; text-align: left;
+  border-bottom: 2px solid var(--gov-border); border-right: 1px solid var(--gov-border); white-space: nowrap;
+}
+.emp-table th:last-child { border-right: none; }
+.emp-table td {
+  padding: .85rem 1rem; font-size: .845rem; color: var(--gov-text);
+  border-bottom: 1px solid #EDF0F5; border-right: 1px solid #F0F3F8; vertical-align: middle;
+}
+.emp-table td:last-child { border-right: none; }
+.emp-table tbody tr:nth-child(even) td { background: #FAFBFD; }
+.emp-table tbody tr:hover td { background: #EEF4FF; }
+
+/* Avatar */
+.emp-avatar-cell { display: flex; align-items: center; gap: .75rem; }
+.emp-av { width: 34px; height: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .82rem; color: #fff; flex-shrink: 0; border: 1px solid rgba(0,0,0,.1); }
+.emp-av-name  { font-weight: 600; color: var(--gov-navy); font-size: .855rem; }
+.emp-av-email { font-size: .71rem; color: var(--gov-muted); }
+
+/* Status */
+.status-onfield {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #E6F4EA; color: #1B5E20; border: 1px solid #A8D5AF;
+  padding: .2rem .6rem; border-radius: 3px; font-size: .73rem; font-weight: 700;
+}
+.status-onfield::before { content:''; width:6px; height:6px; border-radius:50%; background:#138808; flex-shrink:0; }
+.status-offline {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #F1F5F9; color: #455A64; border: 1px solid #CFD8DC;
+  padding: .2rem .6rem; border-radius: 3px; font-size: .73rem; font-weight: 700;
+}
+.status-offline::before { content:''; width:6px; height:6px; border-radius:50%; background:#90A4AE; flex-shrink:0; }
+
+/* Task pill */
+.task-pill { font-size: .8rem; color: var(--gov-text); font-weight: 500; }
+.task-pill::before { content: '✓ '; color: var(--gov-navy); font-weight: 700; }
+
+/* Perf bar */
+.perf-wrap { display: flex; align-items: center; gap: .5rem; }
+.perf-bar  { width: 60px; height: 8px; background: var(--gov-light); border-radius: 2px; overflow: hidden; border: 1px solid var(--gov-border); }
+.perf-fill { height: 100%; border-radius: 1px; }
+.perf-label { font-size: .8rem; font-weight: 700; color: var(--gov-navy); min-width: 32px; }
+
+/* Actions */
+.action-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 3px; border: 1px solid var(--gov-border); background: var(--gov-light); cursor: pointer; color: var(--gov-muted); font-size: 1.1rem; transition: all .15s; }
+.action-btn:hover { background: var(--gov-navy); color: #fff; border-color: var(--gov-navy); }
+
+/* Stats bar */
+.emp-stats-bar { display: flex; background: var(--gov-white); border-top: 2px solid var(--gov-border); flex-shrink: 0; }
+.emp-stat-box { flex: 1; padding: .75rem 1.25rem; display: flex; align-items: center; gap: .65rem; border-right: 1px solid var(--gov-border); }
+.emp-stat-box:last-child { border-right: none; }
+.esb-icon { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; background: var(--gov-light); border: 1px solid var(--gov-border); }
+.esb-label { font-size: .68rem; color: var(--gov-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.esb-value { font-size: 1rem; font-weight: 800; color: var(--gov-navy); }
+
+/* No selection */
+.no-dept-selected { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gov-muted); gap: .75rem; }
+.no-dept-selected .nds-icon { font-size: 3rem; }
+.no-dept-selected p { font-size: .9rem; font-weight: 500; color: var(--gov-muted); }
+.no-dept-selected small { font-size: .78rem; color: var(--gov-border); }
+
+.emp-empty { text-align: center; padding: 2rem; color: var(--gov-muted); font-size: .84rem; }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,48,135,.45);
+  z-index: 1000; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--gov-white); border-radius: 6px; width: 100%; max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0,48,135,.2); border: 1px solid var(--gov-border); overflow: hidden;
+}
+.modal-header {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  padding: .85rem 1.2rem; display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { font-size: .9rem; font-weight: 700; color: #fff; }
+.modal-header button { background: rgba(255,255,255,.15); border: none; color: #fff; width: 26px; height: 26px; border-radius: 3px; cursor: pointer; font-size: .9rem; }
+.modal-header button:hover { background: rgba(255,255,255,.3); }
+.modal-body { padding: 1.2rem; }
+.form-group { margin-bottom: .9rem; }
+.form-group label { font-size: .82rem; font-weight: 700; display: block; margin-bottom: .35rem; color: var(--gov-navy); text-transform: uppercase; letter-spacing: .03em; }
+.gov-input {
+  width: 100%; padding: .6rem .85rem; border: 1.5px solid var(--gov-border); border-radius: 4px;
+  font-family: 'Noto Sans', sans-serif; font-size: .875rem; outline: none; color: var(--gov-text);
+  background: var(--gov-light); transition: border-color .2s;
+}
+.gov-input:focus { border-color: var(--gov-navy); background: #fff; }
+.modal-footer { display: flex; gap: .75rem; justify-content: flex-end; padding: .9rem 1.2rem; border-top: 1px solid var(--gov-border); background: var(--gov-light); }
+.btn-modal-cancel { padding: .55rem 1.1rem; background: var(--gov-white); border: 1.5px solid var(--gov-border); border-radius: 4px; font-size: .83rem; font-weight: 600; color: var(--gov-muted); cursor: pointer; font-family: 'Noto Sans', sans-serif; }
+.btn-modal-cancel:hover { border-color: var(--gov-navy); color: var(--gov-navy); }
+.btn-modal-submit { padding: .55rem 1.2rem; background: var(--gov-navy); color: #fff; border: none; border-radius: 4px; font-size: .83rem; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.btn-modal-submit:hover { background: var(--gov-accent); }
+.gov-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+
+.alert-error { background: #FDECEA; border: 1px solid #FFCDD2; border-left: 4px solid #CC1B1B; color: #B71C1C; padding: .55rem .85rem; border-radius: 4px; font-size: .82rem; font-weight: 600; margin-top: .6rem; }
+.alert-success { background: #E6F4EA; border: 1px solid #A8D5AF; border-left: 4px solid #138808; color: #1B5E20; padding: .55rem .85rem; border-radius: 4px; font-size: .82rem; font-weight: 600; margin-top: .6rem; }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px) {
+  .dept-split { grid-template-columns: 1fr; height: auto; }
+  .dept-left  { height: 280px; border-right: none; border-bottom: 2px solid var(--gov-border); }
+  .dept-right { min-height: 60vh; }
+  .emp-table-wrap { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="gov-header-strip">
+  <div class="gov-header-left">
+    <div class="gov-emblem">🏛️</div>
+    <div class="gov-title-block">
+      <div class="gov-title-hi">भारत सरकार — BDO स्मार्ट गवर्नेंस पोर्टल</div>
+      <div class="gov-title-en">BDO Smart Governance Portal</div>
+      <div class="gov-title-sub">Ministry of Panchayati Raj &nbsp;|&nbsp; Government of India</div>
+    </div>
+  </div>
+  <div class="gov-header-right">
+    <div class="gov-flag-strip">
+      <span style="background:#FF6200"></span>
+      <span style="background:#FFFFFF"></span>
+      <span style="background:#138808"></span>
+    </div>
+    <button class="gov-topbar-btn">👤 <span id="topbarUserName">Admin</span></button>
+    <button class="gov-topbar-btn" onclick="window.location.href='notifications.html'">🔔</button>
+    <button class="gov-topbar-btn" onclick="window.location.href='login.html'">⎋ Logout</button>
+  </div>
+</header>
+
+<!-- Nav -->
+<nav class="gov-navbar">
+  <a href="dashboard.html"    class="gov-nav-item">🏠 Dashboard</a>
+  <div class="gov-nav-sep"></div>
+  <a href="villages.html"     class="gov-nav-item">🏘 Villages</a>
+  <div class="gov-nav-sep"></div>
+  <a href="employees.html"    class="gov-nav-item">👥 Employees</a>
+  <div class="gov-nav-sep"></div>
+  <a href="departments.html"  class="gov-nav-item active">🏢 Departments</a>
+  <div class="gov-nav-sep"></div>
+  <a href="kyc.html"          class="gov-nav-item">🧾 KYC Records</a>
+  <div class="gov-nav-sep"></div>
+  <a href="revenue.html"      class="gov-nav-item">💰 Revenue</a>
+  <div class="gov-nav-sep"></div>
+  <a href="bills.html"        class="gov-nav-item">📋 Bills</a>
+  <div class="gov-nav-sep"></div>
+  <a href="verification.html" class="gov-nav-item">✅ Verification</a>
+  <div class="gov-nav-sep"></div>
+  <a href="analytics.html"    class="gov-nav-item">📊 Analytics</a>
+</nav>
+
+<!-- Breadcrumb -->
+<div class="gov-breadcrumb">
+  <a href="dashboard.html">Home</a>
+  <span>›</span>
+  <span>Administration</span>
+  <span>›</span>
+  <span>Departments &amp; Employees</span>
+</div>
+
+<div id="sidebar-container" style="display:none"></div>
+<div id="topbar-container"  style="display:none"></div>
+
+<!-- Split Layout -->
+<div class="dept-split">
+
+  <!-- ══ LEFT: Department List ══ -->
+  <div class="dept-left">
+    <div class="dept-left-head">
+      <h2>🏢 Departments</h2>
+      <div class="dept-search-wrap">
+        <span class="dept-search-icon">🔍</span>
+        <input type="text" id="deptSearch" placeholder="Search departments…" oninput="filterDepts()">
+      </div>
+    </div>
+    <div class="dept-list" id="deptList">
+      <div style="padding:1.5rem;text-align:center;color:var(--gov-muted);font-size:.84rem">Loading…</div>
+    </div>
+    <div class="dept-left-foot" id="deptLeftFoot" style="display:none">
+      <button class="btn-add-dept" onclick="openModal('createDeptModal')">＋ Add New Department</button>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT: Employee Panel ══ -->
+  <div class="dept-right" id="deptRight">
+    <div class="no-dept-selected" id="noDeptMsg">
+      <div class="nds-icon">🏢</div>
+      <p>Select a department from the list</p>
+      <small>Employee records will appear here</small>
+    </div>
+
+    <div id="empPanel" style="display:none;flex-direction:column;height:100%">
+      <div class="emp-panel-head">
+        <div class="emp-panel-title">
+          <h3 id="empDeptName">—</h3>
+          <p>Department Employee Records</p>
+        </div>
+        <button class="btn-add-emp" id="addEmpBtn" onclick="openAddEmpModal()" style="display:none">
+          + Add Employee
+        </button>
+      </div>
+      <div class="emp-toolbar">
+        <div class="emp-search-wrap">
+          <span class="si">🔍</span>
+          <input type="text" id="empSearch" placeholder="Search employees by name or email…" oninput="filterEmployees()">
+        </div>
+        <select class="gov-select" id="empStatusFilter" onchange="filterEmployees()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="emp-table-wrap">
+        <table class="emp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th>Assigned Tasks</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Performance</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="empTableBody">
+            <tr><td colspan="8" class="emp-empty">Loading employees…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="emp-stats-bar" id="empStatsBar">
+        <div class="emp-stat-box">
+          <div class="esb-icon">⏱</div>
+          <div>
+            <div class="esb-label">Avg Response Time</div>
+            <div class="esb-value" id="statAvgResp">—</div>
+          </div>
+        </div>
+        <div class="emp-stat-box">
+          <div class="esb-icon">✅</div>
+          <div>
+            <div class="esb-label">Tasks Completed</div>
+            <div class="esb-value" id="statTasksDone">—</div>
+          </div>
+        </div>
+        <div class="emp-stat-box">
+          <div class="esb-icon">📈</div>
+          <div>
+            <div class="esb-label">Avg Performance</div>
+            <div class="esb-value" id="statAvgPerf">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Department Modal -->
+<div class="modal-overlay" id="createDeptModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🏢 Create New Department</h3>
+      <button onclick="closeModal('createDeptModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Department Name *</label>
+        <input type="text" id="d_name" class="gov-input" placeholder="e.g. Water Supply Department">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="d_desc" class="gov-input" rows="3" placeholder="Brief description of department responsibilities…" style="resize:vertical"></textarea>
+      </div>
+      <div id="deptModalAlert" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal('createDeptModal')">Cancel</button>
+      <button class="btn-modal-submit" onclick="createDept()">Create Department</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal-overlay" id="addEmpModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>👤 Add New Employee</h3>
+      <button onclick="closeModal('addEmpModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="e_name" class="gov-input" placeholder="Employee full name">
+      </div>
+      <div class="gov-form-grid">
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="e_email" class="gov-input" placeholder="official@taluka.gov.in">
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="e_pass" class="gov-input" placeholder="Min. 6 characters">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Role / Designation *</label>
+        <select id="e_role" class="gov-input">
+          <option value="Employee">Employee</option>
+          <option value="DeptHead">Department Head</option>
+          <option value="DataEntry">Data Entry Operator</option>
+        </select>
+      </div>
+      <div id="empModalAlert" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeModal('addEmpModal')">Cancel</button>
+      <button class="btn-modal-submit" onclick="addEmployee()">Add Employee</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+if (typeof initLayout === 'function') initLayout('departments');
+
+const currentUser = typeof getUser === 'function' ? getUser() : {};
+const isBDO = currentUser?.role === 'BDO' || currentUser?.role === 'DeptHead';
+if (isBDO) document.getElementById('deptLeftFoot').style.display = '';
+
+let allDepts    = [];
+let allEmps     = [];
+let currentDept = null;
+
+const DEPT_PALETTE = [
+  { dot:'#003087', bg:'#EEF4FF', border:'#93B8E0' },
+  { dot:'#138808', bg:'#E6F4EA', border:'#A8D5AF' },
+  { dot:'#FF6200', bg:'#FFF3EC', border:'#FFC49A' },
+  { dot:'#C8940A', bg:'#FFFBEA', border:'#F5D888' },
+  { dot:'#0891B2', bg:'#E0F7FA', border:'#80DEEA' },
+  { dot:'#7B1FA2', bg:'#F3E5F5', border:'#CE93D8' },
+  { dot:'#C62828', bg:'#FFEBEE', border:'#EF9A9A' },
+  { dot:'#2E7D32', bg:'#E8F5E9', border:'#A5D6A7' },
+];
+
+function deptColor(id, idx) {
+  const offset = id ? parseInt(id.slice(-2), 16) % DEPT_PALETTE.length : 0;
+  return DEPT_PALETTE[(idx + offset) % DEPT_PALETTE.length];
+}
+
+const AV_COLORS = ['#003087','#138808','#FF6200','#C8940A','#0891B2','#7B1FA2','#C62828'];
+function avatarColor(name) {
+  let h = 0;
+  for (let c of (name||'?')) h = (h * 31 + c.charCodeAt(0)) % AV_COLORS.length;
+  return AV_COLORS[h];
+}
+function initials(name) {
+  return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+function timeAgo(date) {
+  if (!date) return '—';
+  const s = Math.floor((new Date() - new Date(date)) / 1000);
+  if (s < 60)    return 'Just now';
+  if (s < 3600)  return Math.floor(s/60)   + ' min ago';
+  if (s < 86400) return Math.floor(s/3600) + ' hrs ago';
+  return Math.floor(s/86400) + ' days ago';
+}
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ── Modal helpers ── */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+/* ── Load Departments ── */
+async function loadDepts() {
+  const data = await apiGet('/departments');
+  if (!data?.data) return;
+  allDepts = data.data;
+  renderDeptList(allDepts);
+}
+
+function renderDeptList(depts) {
+  if (!depts.length) {
+    document.getElementById('deptList').innerHTML =
+      '<div style="padding:1.5rem;text-align:center;color:var(--gov-muted);font-size:.84rem">No departments found</div>';
+    return;
+  }
+  document.getElementById('deptList').innerHTML = depts.map((d, idx) => {
+    const col   = deptColor(d._id, idx);
+    const isAct = currentDept?._id === d._id;
+    return `
+    <div class="dept-item ${isAct ? 'active' : ''}"
+         id="dept-item-${d._id}"
+         onclick="selectDept('${d._id}')">
+      <div class="dept-color-dot" style="background:${col.dot}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="dept-item-name">${escHtml(d.name)}</div>
+        <div class="dept-item-meta">
+          <span class="total">Total: ${d.employeeCount || 0}</span>
+          <span class="active-count">Active: ${d.employeeCount || 0}</span>
+        </div>
+      </div>
+      <span style="font-size:.7rem;color:var(--gov-muted);font-weight:600;flex-shrink:0">›</span>
+    </div>`;
+  }).join('');
+}
+
+function filterDepts() {
+  const q = document.getElementById('deptSearch').value.toLowerCase();
+  renderDeptList(q ? allDepts.filter(d => d.name.toLowerCase().includes(q)) : allDepts);
+}
+
+/* ── Select Department ── */
+async function selectDept(id) {
+  currentDept = allDepts.find(d => d._id === id);
+  if (!currentDept) return;
+  renderDeptList(allDepts.filter(d =>
+    !document.getElementById('deptSearch').value ||
+    d.name.toLowerCase().includes(document.getElementById('deptSearch').value.toLowerCase())
+  ));
+  document.getElementById('noDeptMsg').style.display = 'none';
+  const panel = document.getElementById('empPanel');
+  panel.style.display = 'flex';
+  document.getElementById('empDeptName').textContent = currentDept.name + ' — Employees';
+  if (isBDO) document.getElementById('addEmpBtn').style.display = '';
+
+  const data = await apiGet('/employees');
+  if (!data?.data) return;
+  allEmps = data.data.filter(e => e.departmentId?._id === id || e.departmentId === id);
+  filterEmployees();
+  renderStatsBar(allEmps);
+}
+
+function filterEmployees() {
+  const q      = (document.getElementById('empSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('empStatusFilter')?.value || '';
+  let list = allEmps;
+  if (q) list = list.filter(e => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
+  if (status === 'active')   list = list.filter(e => e.isActive !== false);
+  if (status === 'inactive') list = list.filter(e => e.isActive === false);
+  renderEmpTable(list);
+}
+
+function renderEmpTable(emps) {
+  if (!emps.length) {
+    document.getElementById('empTableBody').innerHTML =
+      `<tr><td colspan="8" class="emp-empty">No employees found in this department</td></tr>`;
+    return;
+  }
+  document.getElementById('empTableBody').innerHTML = emps.map((e, i) => {
+    const color  = avatarColor(e.name);
+    const active = e.isActive !== false;
+    const perf   = active ? (70 + Math.abs(e.name.charCodeAt(0) % 29)) : 0;
+    const tasks  = active ? (3  + (e.name.charCodeAt(0) % 8)) : 0;
+    const perfColor = perf >= 85 ? '#138808' : perf >= 70 ? '#C8940A' : '#CC1B1B';
+    return `<tr>
+      <td style="color:var(--gov-muted);font-size:.77rem;font-weight:600">${i+1}</td>
+      <td>
+        <div class="emp-avatar-cell">
+          <div class="emp-av" style="background:${color}">${initials(e.name)}</div>
+          <div>
+            <div class="emp-av-name">${escHtml(e.name)}</div>
+            <div class="emp-av-email">${escHtml(e.email)}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--gov-muted);font-size:.82rem">${escHtml(e.departmentId?.name || currentDept?.name || '—')}</td>
+      <td><span class="task-pill">${tasks} Tasks</span></td>
+      <td>${active ? '<span class="status-onfield">ON FIELD</span>' : '<span class="status-offline">OFFLINE</span>'}</td>
+      <td style="color:var(--gov-muted);font-size:.8rem">${timeAgo(e.lastLogin)}</td>
+      <td>
+        <div class="perf-wrap">
+          <div class="perf-bar"><div class="perf-fill" style="width:${perf}%;background:${perfColor}"></div></div>
+          <span class="perf-label">${active ? perf + '%' : '—'}</span>
+        </div>
+      </td>
+      <td>
+        <button class="action-btn" title="Toggle Status" onclick="showEmpMenu('${e._id}','${escHtml(e.name)}','${active}')">⋮</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStatsBar(emps) {
+  const active = emps.filter(e => e.isActive !== false);
+  document.getElementById('statAvgResp').textContent  = active.length > 0 ? '1.2 hrs' : '—';
+  document.getElementById('statTasksDone').textContent = emps.reduce((s, e) => s + (e.isActive !== false ? 3 + (e.name.charCodeAt(0) % 8) : 0), 0);
+  const perfs = active.map(e => 70 + Math.abs(e.name.charCodeAt(0) % 29));
+  document.getElementById('statAvgPerf').textContent  = perfs.length ? Math.round(perfs.reduce((a,b)=>a+b,0)/perfs.length) + '%' : '—';
+}
+
+function showEmpMenu(id, name, isActive) {
+  if (confirm(`${isActive === 'true' ? 'Deactivate' : 'Activate'} employee "${name}"?`)) toggleEmpStatus(id);
+}
+
+async function toggleEmpStatus(id) {
+  const data = await apiPut(`/employees/${id}/toggle-status`, {});
+  if (data?.success) { showToast(data.message, 'success'); selectDept(currentDept._id); }
+  else showToast(data?.message || 'Error updating status', 'error');
+}
+
+/* ── Create Department ── */
+async function createDept() {
+  const name = document.getElementById('d_name').value.trim();
+  const desc = document.getElementById('d_desc').value.trim();
+  const al   = document.getElementById('deptModalAlert');
+  if (!name) {
+    al.style.display = 'block'; al.className = 'alert-error'; al.textContent = 'Department name is required.'; return;
+  }
+  const data = await apiPost('/departments', { name, description: desc });
+  if (data?.success) {
+    showToast('Department created successfully', 'success');
+    closeModal('createDeptModal');
+    document.getElementById('d_name').value = '';
+    document.getElementById('d_desc').value = '';
+    al.style.display = 'none';
+    loadDepts();
+  } else {
+    al.style.display = 'block'; al.className = 'alert-error';
+    al.textContent = data?.message || 'Failed to create department.';
+  }
+}
+
+/* ── Add Employee ── */
+function openAddEmpModal() {
+  if (!currentDept) { showToast('Please select a department first', 'error'); return; }
+  openModal('addEmpModal');
+}
+
+async function addEmployee() {
+  const name  = document.getElementById('e_name').value.trim();
+  const email = document.getElementById('e_email').value.trim();
+  const pass  = document.getElementById('e_pass').value;
+  const role  = document.getElementById('e_role').value;
+  const al    = document.getElementById('empModalAlert');
+  if (!name || !email || !pass) {
+    al.style.display = 'block'; al.className = 'alert-error'; al.textContent = 'Please fill all required fields.'; return;
+  }
+  const data = await apiPost('/auth/register', { name, email, password: pass, role, departmentId: currentDept._id });
+  if (data?.success) {
+    showToast('Employee added successfully', 'success');
+    closeModal('addEmpModal');
+    ['e_name','e_email','e_pass'].forEach(id => document.getElementById(id).value = '');
+    al.style.display = 'none';
+    selectDept(currentDept._id);
+    loadDepts();
+  } else {
+    al.style.display = 'block'; al.className = 'alert-error';
+    al.textContent = data?.message || 'Failed to add employee.';
+  }
+}
+
+/* Fallback shim */
+if (typeof apiGet === 'undefined') {
+  window.apiGet = async () => null;
+  window.apiPost = async () => null;
+  window.apiPut = async () => null;
+  window.showToast = (m) => alert(m);
+  window.getUser = () => ({ role: 'BDO' });
+  document.getElementById('deptLeftFoot').style.display = '';
+  allDepts = [
+    { _id:'1', name:'Water Supply', employeeCount:8 },
+    { _id:'2', name:'Health & Sanitation', employeeCount:12 },
+    { _id:'3', name:'Education', employeeCount:6 },
+    { _id:'4', name:'Agriculture', employeeCount:5 },
+    { _id:'5', name:'Roads & Infrastructure', employeeCount:9 },
+    { _id:'6', name:'Electricity', employeeCount:7 },
+  ];
+  renderDeptList(allDepts);
+} else {
+  loadDepts();
+}
+</script>
+</body>
+</html>

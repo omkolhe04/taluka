@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --gov-navy:    #003087;
+  --gov-saffron: #FF6200;
+  --gov-green:   #138808;
+  --gov-white:   #FFFFFF;
+  --gov-light:   #EEF2F8;
+  --gov-border:  #C8D6E8;
+  --gov-text:    #1A2840;
+  --gov-muted:   #5A6A82;
+  --gov-accent:  #0057A8;
+  --shadow-sm:   0 1px 4px rgba(0,48,135,.10);
+}
+
+/* ── Stat cards ── */
+.an-stats {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media(max-width:900px){ .an-stats{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:520px){ .an-stats{ grid-template-columns:1fr; } }
+
+.an-stat {
+  border-radius: 6px;
+  padding: 1.2rem 1.3rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border-top: 4px solid rgba(255,255,255,.3);
+}
+.an-stat::after {
+  content: '';
+  position: absolute;
+  right: -18px; bottom: -18px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+.as-blue   { background: linear-gradient(135deg, #003087 0%, #0057A8 100%); }
+.as-green  { background: linear-gradient(135deg, #138808 0%, #22A61A 100%); }
+.as-purple { background: linear-gradient(135deg, #6A1B9A 0%, #9C27B0 100%); }
+.as-orange { background: linear-gradient(135deg, #CC4E00 0%, #FF6200 100%); }
+
+.an-stat-icon {
+  width: 42px; height: 42px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: .75rem;
+}
+.an-stat-icon svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.an-trend {
+  position: absolute; top: .9rem; right: .9rem;
+  font-size: .72rem; font-weight: 700;
+  background: rgba(255,255,255,.18);
+  padding: .18rem .5rem; border-radius: 3px;
+}
+.an-trend svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2; vertical-align: middle; }
+
+.an-value { font-size: 1.85rem; font-weight: 800; line-height: 1; margin-bottom: .3rem; }
+.an-label { font-size: .78rem; font-weight: 700; opacity: .92; margin-bottom: .2rem; text-transform: uppercase; letter-spacing: .04em; }
+.an-sub   { font-size: .72rem; opacity: .78; }
+
+/* ── Section header ── */
+.gov-section-hdr {
+  background: linear-gradient(90deg, var(--gov-navy) 0%, var(--gov-accent) 100%);
+  color: #fff;
+  padding: .55rem 1.1rem;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.gov-section-hdr p {
+  font-size: .72rem; opacity: .8;
+  font-weight: 400; text-transform: none;
+  letter-spacing: 0; margin: 0;
+}
+
+/* ── Cards ── */
+.an-card {
+  background: var(--gov-white);
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.an-card-body { padding: 1.1rem 1.3rem; }
+
+/* period select — sits inside the navy header */
+.an-period-select {
+  padding: .28rem .7rem;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 3px;
+  font-size: .76rem;
+  font-family: 'Noto Sans', sans-serif;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  outline: none;
+  cursor: pointer;
+}
+.an-period-select option { background: var(--gov-navy); color: #fff; }
+
+.chart-h260 { height: 260px; position: relative; }
+.chart-h220 { height: 220px; position: relative; }
+.chart-h200 { height: 200px; position: relative; }
+
+/* ── 2-col grid ── */
+.an-charts-2col {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+@media(max-width:1024px){ .an-charts-2col{ grid-template-columns:1fr; } }
+
+/* ── Pie legend ── */
+.pie-legend {
+  display: flex; flex-wrap: wrap;
+  gap: .5rem 1.1rem;
+  margin-top: .75rem;
+  border-top: 1px solid #EDF0F5;
+  padding-top: .75rem;
+}
+.pl-item { display: flex; align-items: center; gap: .45rem; font-size: .79rem; color: var(--gov-text); font-weight: 500; }
+.pl-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Village bars ── */
+.an-village-bars { display: flex; flex-direction: column; gap: .65rem; }
+.avb-row { display: flex; align-items: center; gap: .75rem; }
+.avb-label { width: 90px; font-size: .78rem; font-weight: 600; color: var(--gov-navy); text-align: right; flex-shrink: 0; text-transform: capitalize; }
+.avb-bar-wrap { flex: 1; height: 20px; background: var(--gov-light); border-radius: 3px; overflow: hidden; border: 1px solid var(--gov-border); }
+.avb-bar { height: 100%; background: linear-gradient(90deg, var(--gov-navy), var(--gov-accent)); border-radius: 2px; transition: width .6s ease; }
+.avb-pct { width: 34px; font-size: .78rem; font-weight: 700; color: var(--gov-navy); }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Stat cards — all IDs identical to original -->
+    <div class="an-stats">
+      <div class="an-stat as-blue">
+        <div class="an-stat-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="an-trend"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="an-value" id="asRevenue">—</div>
+        <div class="an-label">Revenue This Month</div>
+        <div class="an-sub" id="asRevenueGrowth">+0% from last month</div>
+      </div>
+      <div class="an-stat as-green">
+        <div class="an-stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="an-trend"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="an-value" id="asPerformance">—</div>
+        <div class="an-label">Avg Performance</div>
+        <div class="an-sub" id="asPerfSub">+4.1% from last month</div>
+      </div>
+      <div class="an-stat as-purple">
+        <div class="an-stat-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="an-trend"><svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="4"/><polyline points="6 10 12 4 18 10"/></svg></div>
+        <div class="an-value" id="asVillages">—</div>
+        <div class="an-label">Active Villages</div>
+        <div class="an-sub" id="asVillagesSub">200 tasks this month</div>
+      </div>
+      <div class="an-stat as-orange">
+        <div class="an-stat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="an-trend"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="an-value" id="asSchemes">—</div>
+        <div class="an-label">Active Schemes</div>
+        <div class="an-sub">5 new this quarter</div>
+      </div>
+    </div>
+
+    <!-- Monthly Revenue -->
+    <div class="an-card">
+      <div class="gov-section-hdr">
+        <div>
+          <div>📈 Monthly Revenue Collection</div>
+          <p>Revenue vs Target (Last 6 Months)</p>
+        </div>
+        <select class="an-period-select" id="revPeriod" onchange="loadRevenueTrends()">
+          <option value="6">Last 6 Months</option>
+          <option value="12">Last 12 Months</option>
+        </select>
+      </div>
+      <div class="an-card-body">
+        <div class="chart-h260"><canvas id="revenueChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Dept + Schemes -->
+    <div class="an-charts-2col">
+      <div class="an-card" style="margin-bottom:0">
+        <div class="gov-section-hdr"><span>🏢 Department Performance Score</span></div>
+        <div class="an-card-body">
+          <div class="chart-h220"><canvas id="deptChart"></canvas></div>
+        </div>
+      </div>
+      <div class="an-card" style="margin-bottom:0">
+        <div class="gov-section-hdr"><span>🥧 Active Schemes Distribution</span></div>
+        <div class="an-card-body">
+          <div class="chart-h200"><canvas id="schemesChart"></canvas></div>
+          <div class="pie-legend" id="schemesLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Village bars -->
+    <div class="an-card">
+      <div class="gov-section-hdr"><span>🗺️ Village-wise Task Completion</span></div>
+      <div class="an-card-body">
+        <div class="an-village-bars" id="villageBarChart"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════ ORIGINAL JS — ZERO CHANGES ════ -->
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('analytics');
+let revChart, dChart, sChart;
+
+async function init() {
+  const [stats, revTrends, kycStats] = await Promise.all([
+    apiGet('/dashboard/stats'),
+    apiGet('/analytics/revenue-trends?year=2026'),
+    apiGet('/analytics/kyc-stats')
+  ]);
+
+  // Stat cards
+  if (stats?.data) {
+    const d = stats.data;
+    const revTotal = d.revenue?.total || 0;
+    const revLakh  = revTotal >= 100000 ? '₹' + (revTotal/100000).toFixed(2) + 'L' : formatCurrency(revTotal);
+    document.getElementById('asRevenue').textContent    = revLakh;
+    document.getElementById('asVillages').textContent   = d.villages || 0;
+    document.getElementById('asSchemes').textContent    = 18; // static per Figma
+    const kycRate = d.kyc?.completionRate || 87;
+    document.getElementById('asPerformance').textContent = kycRate + '%';
+    document.getElementById('asPerfSub').textContent     = `+${(kycRate > 80 ? 4.1 : 1.2).toFixed(1)}% from last month`;
+  }
+
+  loadRevenueTrends(revTrends);
+  loadDeptChart();
+  loadSchemesChart();
+  loadVillageChart();
+}
+
+async function loadRevenueTrends(preloaded) {
+  const year = document.getElementById('revPeriod').value;
+  const data = preloaded || await apiGet(`/analytics/revenue-trends?year=2026`);
+  if (!data?.data) return;
+
+  if (revChart) revChart.destroy();
+  revChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels: data.data.map(d => d.month),
+      datasets: [{
+        label: 'Revenue',
+        data: data.data.map(d => d.total),
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59,130,246,.15)',
+        fill: true, tension: .4,
+        pointBackgroundColor: '#2563EB',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color:'#F1F5F9' }, ticks: { callback: v => '₹'+(v/1000).toFixed(0)+'K' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function loadDeptChart() {
+  const labels = ['Water','Health','Education','Agriculture','Roads','Electricity'];
+  const data   = [88, 82, 78, 72, 68, 76];
+  if (dChart) dChart.destroy();
+  dChart = new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: '#3B82F6',
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false } },
+      scales: {
+        x: { beginAtZero:true, max:100, ticks:{ callback: v => v }, grid:{ color:'#F1F5F9' } },
+        y: { grid:{ display:false } }
+      }
+    }
+  });
+}
+
+function loadSchemesChart() {
+  const schemes = [
+    { label:'PM Awas Yojana', pct:28, color:'#3B82F6' },
+    { label:'MGNREGA',        pct:22, color:'#10B981' },
+    { label:'Water Supply',   pct:18, color:'#8B5CF6' },
+    { label:'Education',      pct:17, color:'#EF4444' },
+    { label:'Health Schemes', pct:15, color:'#F59E0B' },
+  ];
+  if (sChart) sChart.destroy();
+  sChart = new Chart(document.getElementById('schemesChart'), {
+    type: 'pie',
+    data: {
+      labels: schemes.map(s => s.label),
+      datasets: [{ data: schemes.map(s => s.pct), backgroundColor: schemes.map(s => s.color), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw}%` } } }
+    }
+  });
+  document.getElementById('schemesLegend').innerHTML = schemes.map(s =>
+    `<div class="pl-item"><span class="pl-dot" style="background:${s.color}"></span>${s.label}</div>`
+  ).join('');
+}
+
+async function loadVillageChart() {
+  const data = await apiGet('/revenue/village-summary');
+  const summaries = data?.data || [];
+  if (!summaries.length) {
+    document.getElementById('villageBarChart').innerHTML = '<div style="color:#94A3B8;font-size:.83rem;padding:.5rem">No village data available</div>';
+    return;
+  }
+  const maxAmt = Math.max(...summaries.map(v => v.totalAmount), 1);
+  document.getElementById('villageBarChart').innerHTML = summaries.slice(0,8).map(v => {
+    const pct = Math.round((v.totalAmount / maxAmt) * 100);
+    return `
+    <div class="avb-row">
+      <span class="avb-label">${v.villageName}</span>
+      <div class="avb-bar-wrap"><div class="avb-bar" style="width:${pct}%"></div></div>
+      <span class="avb-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

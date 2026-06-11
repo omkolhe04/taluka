@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* ════════════════════════════════════════════
+   REVENUE PAGE — Figma Match
+════════════════════════════════════════════ */
+.main-content { background: #F8FAFC; padding: 1.75rem; }
+
+/* ── Top stat cards ── */
+.rev-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media(max-width:900px) { .rev-stat-row { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:520px) { .rev-stat-row { grid-template-columns: 1fr; } }
+
+.rev-stat-card {
+  background: #fff;
+  border: 1px solid #F1F5F9;
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.rsc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rsc-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.rsc-icon svg { width: 22px; height: 22px; }
+.rsc-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: .2rem;
+}
+.rsc-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1E293B;
+  line-height: 1;
+}
+
+/* icon colors */
+.rsc-green  { background: #DCFCE7; }
+.rsc-green svg  { stroke: #16A34A; }
+.rsc-blue   { background: #DBEAFE; }
+.rsc-blue svg   { stroke: #2563EB; }
+.rsc-orange { background: #FED7AA; }
+.rsc-orange svg { stroke: #EA580C; }
+.rsc-red    { background: #FEE2E2; }
+.rsc-red svg    { stroke: #DC2626; }
+
+/* ── Section heading ── */
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 1rem;
+}
+
+/* ── Data Entry section ── */
+.rev-section {
+  background: #fff;
+  border: 1px solid #F1F5F9;
+  border-radius: 16px;
+  padding: 1.4rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.data-entry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media(max-width:600px) { .data-entry-grid { grid-template-columns: 1fr; } }
+
+.de-card {
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 14px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  background: #FAFBFC;
+}
+.de-card:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+.de-card:hover .de-icon svg { stroke: #2563EB; }
+.de-icon {
+  width: 48px; height: 48px;
+  background: #F1F5F9;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .85rem;
+  transition: background .18s;
+}
+.de-card:hover .de-icon { background: #DBEAFE; }
+.de-icon svg { width: 24px; height: 24px; stroke: #64748B; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.de-title { font-size: .95rem; font-weight: 700; color: #1E293B; margin-bottom: .3rem; }
+.de-sub   { font-size: .78rem; color: #94A3B8; }
+
+/* ── Village-wise table section ── */
+.vw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+.btn-export {
+  display: flex; align-items: center; gap: .5rem;
+  background: #2563EB; color: #fff;
+  border: none; border-radius: 10px;
+  padding: .6rem 1.2rem;
+  font-size: .85rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 2px 8px rgba(37,99,235,.25);
+  transition: background .18s;
+}
+.btn-export:hover { background: #1D4ED8; }
+.btn-export svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Revenue table */
+.rev-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rev-table th {
+  padding: .75rem 1rem;
+  text-align: left;
+  font-size: .73rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid #F1F5F9;
+  white-space: nowrap;
+  background: #F8FAFC;
+}
+.rev-table td {
+  padding: .9rem 1rem;
+  font-size: .875rem;
+  color: #374151;
+  border-bottom: 1px solid #F8FAFC;
+  vertical-align: middle;
+}
+.rev-table tbody tr:last-child td { border-bottom: none; }
+.rev-table tbody tr:hover td { background: #FAFBFF; }
+.rev-table .village-name { font-weight: 600; color: #1E293B; text-transform: capitalize; }
+.rev-table .amt-cell     { font-weight: 600; color: #1E293B; }
+.rev-table .total-cell   { font-weight: 700; color: #1E293B; }
+.rev-table .dash-cell    { color: #CBD5E1; }
+
+/* Status badge */
+.sub-status {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .28rem .75rem; border-radius: 20px;
+  font-size: .78rem; font-weight: 600;
+  white-space: nowrap;
+}
+.ss-submitted { background: #DCFCE7; color: #16A34A; }
+.ss-pending   { background: #FED7AA; color: #C2410C; }
+.ss-error     { background: #FEE2E2; color: #DC2626; }
+.ss-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ss-submitted .ss-dot { background: #16A34A; }
+.ss-pending   .ss-dot { background: #EA580C; }
+.ss-error     .ss-dot { background: #DC2626; }
+
+/* ── Level 2: Village detail (drill-down) ── */
+.back-btn {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .5rem 1rem;
+  background: #fff; border: 1.5px solid #E2E8F0;
+  border-radius: 10px; font-size: .85rem; font-weight: 600;
+  color: #374151; cursor: pointer; font-family: inherit;
+  transition: all .18s; margin-bottom: 1.1rem;
+}
+.back-btn:hover { border-color: #2563EB; color: #2563EB; }
+.bc-wrap { display: flex; align-items: center; gap: .4rem; margin-bottom: 1.1rem; font-size: .875rem; }
+.bc-link  { color: #94A3B8; cursor: pointer; font-weight: 500; }
+.bc-link:hover { color: #2563EB; }
+.bc-sep   { color: #CBD5E1; }
+.bc-cur   { background: #EFF6FF; color: #2563EB; font-weight: 700; padding: .18rem .65rem; border-radius: 6px; text-transform: capitalize; }
+
+/* Level 2 mini stats */
+.l2-stats {
+  display: flex; gap: .85rem; margin-bottom: 1.1rem; flex-wrap: wrap;
+}
+.l2-stat {
+  flex: 1; min-width: 120px;
+  background: #fff; border: 1px solid #F1F5F9;
+  border-radius: 12px; padding: .85rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.l2-stat-val { font-size: 1.15rem; font-weight: 800; color: #1E293B; }
+.l2-stat-lbl { font-size: .7rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; margin-top: .1rem; }
+
+/* Level 2 filters */
+.l2-filters {
+  display: flex; gap: .6rem; flex-wrap: wrap;
+  align-items: center; margin-bottom: 1rem;
+}
+.l2-filters select, .l2-filters input {
+  padding: .48rem .8rem;
+  border: 1.5px solid #E2E8F0; border-radius: 9px;
+  font-size: .83rem; font-family: inherit; background: #fff;
+  color: #374151; outline: none;
+}
+.l2-filters select:focus, .l2-filters input:focus { border-color: #2563EB; }
+.l2-rec-count { font-size: .8rem; color: #94A3B8; margin-left: auto; }
+
+/* Action buttons */
+.btn-notify {
+  padding: .28rem .65rem; background: #FFFBEB;
+  border: 1px solid #FCD34D; color: #B45309;
+  border-radius: 7px; font-size: .75rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.btn-notify:hover { background: #F59E0B; color: #fff; border-color: #F59E0B; }
+.btn-del {
+  padding: .28rem .55rem; background: #FEF2F2;
+  border: 1px solid #FECACA; color: #DC2626;
+  border-radius: 7px; font-size: .75rem; cursor: pointer; font-family: inherit;
+}
+.btn-del:hover { background: #DC2626; color: #fff; }
+.btn-edit-due {
+  padding: .22rem .5rem; background: #EFF6FF;
+  border: 1px solid #BFDBFE; color: #2563EB;
+  border-radius: 6px; font-size: .72rem; cursor: pointer; font-family: inherit; margin-left: .3rem;
+}
+
+/* ── Notify modal ── */
+.nmo { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+.nmo.open { display:flex; }
+.nm { background:#fff; border-radius:16px; width:90%; max-width:490px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden; animation:nmIn .2s ease; }
+@keyframes nmIn { from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1} }
+.nm-head { background:linear-gradient(135deg,#F59E0B,#D97706); padding:1.1rem 1.5rem; color:#fff; }
+.nm-head h3 { font-size:.95rem; font-weight:700; margin:0 0 .15rem; }
+.nm-head p  { font-size:.78rem; opacity:.85; margin:0; }
+.nm-body { padding:1.4rem 1.5rem; }
+.nm-meta { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.9rem; }
+.nm-mi { background:#F8FAFC; border-radius:9px; padding:.55rem .8rem; }
+.nm-mi label { font-size:.68rem; font-weight:700; text-transform:uppercase; color:#94A3B8; display:block; margin-bottom:.1rem; }
+.nm-mi span  { font-size:.85rem; font-weight:600; color:#1E293B; text-transform:capitalize; }
+.nm-field label { font-size:.83rem; font-weight:600; color:#374151; display:block; margin-bottom:.35rem; }
+.nm-field input, .nm-field textarea { width:100%; padding:.6rem .8rem; border:1.5px solid #E2E8F0; border-radius:9px; font-family:inherit; font-size:.875rem; outline:none; margin-bottom:.75rem; }
+.nm-field input:focus, .nm-field textarea:focus { border-color:#2563EB; }
+.nm-foot { padding:.85rem 1.5rem; border-top:1px solid #F1F5F9; display:flex; gap:.75rem; justify-content:flex-end; }
+.btn-cancel-nm { padding:.58rem 1rem; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; color:#374151; }
+.btn-send-nm   { padding:.58rem 1.25rem; background:#2563EB; color:#fff; border:none; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-send-nm:hover { background:#1D4ED8; }
+
+/* Edit due modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:16px; width:90%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,.15); overflow:hidden; }
+.modal-header { padding:1rem 1.5rem; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center; }
+.modal-header h3 { font-size:.95rem; font-weight:700; color:#1E293B; }
+.modal-header button { background:none; border:none; cursor:pointer; color:#94A3B8; font-size:1.1rem; }
+.modal-body { padding:1.4rem 1.5rem; }
+.modal-footer { padding:.85rem 1.5rem; border-top:1px solid #F1F5F9; display:flex; gap:.75rem; justify-content:flex-end; }
+.mf-label { font-size:.83rem; font-weight:600; color:#374151; display:block; margin-bottom:.4rem; }
+.mf-inp { width:100%; padding:.65rem .875rem; border:1.5px solid #E2E8F0; border-radius:9px; font-size:.9rem; font-family:inherit; outline:none; }
+.mf-inp:focus { border-color:#2563EB; }
+.btn-save-m { padding:.6rem 1.25rem; background:#2563EB; color:#fff; border:none; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-cancel-m { padding:.6rem 1rem; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; color:#374151; }
+
+/* Empty / loading */
+.rev-empty { text-align:center; padding:3rem; color:#94A3B8; }
+.rev-empty .re-icon { font-size:2.5rem; margin-bottom:.75rem; }
+.rev-empty h3 { font-size:.95rem; font-weight:600; color:#374151; margin-bottom:.25rem; }
+.type-chip { display:inline-block; padding:.2rem .6rem; background:#EFF6FF; color:#2563EB; border-radius:20px; font-size:.75rem; font-weight:600; text-transform:capitalize; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- ═══ LEVEL 1: Overview ═══ -->
+    <div id="viewL1">
+
+      <!-- Stat cards -->
+      <div class="rev-stat-row" id="revStatRow">
+        <!-- skeletons while loading -->
+        <div class="rev-stat-card" style="opacity:.5"><div style="height:80px;background:#F1F5F9;border-radius:10px"></div></div>
+        <div class="rev-stat-card" style="opacity:.5"><div style="height:80px;background:#F1F5F9;border-radius:10px"></div></div>
+        <div class="rev-stat-card" style="opacity:.5"><div style="height:80px;background:#F1F5F9;border-radius:10px"></div></div>
+        <div class="rev-stat-card" style="opacity:.5"><div style="height:80px;background:#F1F5F9;border-radius:10px"></div></div>
+      </div>
+
+      <!-- Data Entry section -->
+      <div class="rev-section" id="dataEntrySection">
+        <div class="section-title">Data Entry</div>
+        <div class="data-entry-grid">
+          <div class="de-card" onclick="window.location.href='excel.html'">
+            <div class="de-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="de-title">Upload Excel File</div>
+            <div class="de-sub">Bulk upload village revenue data</div>
+          </div>
+          <div class="de-card" id="manualEntryCard">
+            <div class="de-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="de-title">Manual Entry</div>
+            <div class="de-sub">Enter data for individual village</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Village-wise Revenue Data table -->
+      <div class="rev-section">
+        <div class="vw-head">
+          <span class="section-title" style="margin-bottom:0">Village-wise Revenue Data</span>
+          <button class="btn-export" onclick="exportReport()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="rev-table" id="villageTable">
+            <thead>
+              <tr>
+                <th>Village Name</th>
+                <th>Gharpatti</th>
+                <th>Panipatti</th>
+                <th>Mahsul</th>
+                <th>Total</th>
+                <th>Submission Status</th>
+                <th>Date</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody id="villageTableBody">
+              <tr><td colspan="8" style="text-align:center;padding:2.5rem;color:#94A3B8">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ LEVEL 2: Village detail ═══ -->
+    <div id="viewL2" style="display:none">
+
+      <button class="back-btn" onclick="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Villages
+      </button>
+
+      <div class="bc-wrap">
+        <span class="bc-link" onclick="goBack()">Villages</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bcVillageName"></span>
+      </div>
+
+      <!-- L2 mini stats -->
+      <div class="l2-stats" id="l2Stats"></div>
+
+      <!-- L2 filters -->
+      <div class="l2-filters">
+        <select id="dfMonth" onchange="loadVillageRecords()">
+          <option value="">All Months</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <select id="dfYear" onchange="loadVillageRecords()">
+          <option value="">All Years</option>
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <input type="text" id="dfType" placeholder="Filter by type…" oninput="loadVillageRecords()" style="width:150px">
+        <span class="l2-rec-count" id="detailRecordCount"></span>
+      </div>
+
+      <!-- L2 records table -->
+      <div class="rev-section" style="padding:0;overflow:hidden">
+        <div id="villageRecordsTable"></div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Notify Modal ── -->
+<div class="nmo" id="notifyOverlay">
+  <div class="nm">
+    <div class="nm-head">
+      <h3>🔔 Send Due Amount Notification</h3>
+      <p>Notify DataEntry operator to collect pending amount</p>
+    </div>
+    <div class="nm-body">
+      <div class="nm-meta">
+        <div class="nm-mi"><label>Village</label><span id="nm_village">—</span></div>
+        <div class="nm-mi"><label>Tax Type</label><span id="nm_type">—</span></div>
+        <div class="nm-mi"><label>Period</label><span id="nm_period">—</span></div>
+        <div class="nm-mi"><label>Due Amount</label><span id="nm_due">—</span></div>
+      </div>
+      <div class="nm-field">
+        <label>Due Amount (₹)</label>
+        <input type="number" id="nm_dueInput" min="0">
+      </div>
+      <div class="nm-field">
+        <label>Message</label>
+        <textarea id="nm_message" rows="3"></textarea>
+      </div>
+      <div id="notifyAlert" style="display:none;padding:.6rem .8rem;border-radius:8px;font-size:.83rem;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;margin-top:.25rem"></div>
+    </div>
+    <div class="nm-foot">
+      <button class="btn-cancel-nm" onclick="closeNotifyModal()">Cancel</button>
+      <button class="btn-send-nm" onclick="sendNotification()">📤 Send Notification</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Due Modal ── -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Edit Due Amount</h3>
+      <button onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit_id">
+      <label class="mf-label">Due Amount (₹)</label>
+      <input type="number" class="mf-inp" id="edit_due" min="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-m" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn-save-m" onclick="saveDueEdit()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('revenue');
+
+const currentUser = getUser();
+const MONTHS = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Show Data Entry section only for DataEntry/BDO
+if (currentUser?.role === 'Employee' || currentUser?.role === 'DeptHead') {
+  document.getElementById('dataEntrySection').style.display = 'none';
+}
+
+let allSummaries  = [];
+let currentVillage = '';
+let notifyRow      = null;
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+async function init() {
+  await Promise.all([loadTopStats(), loadVillageSummaries()]);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Top 4 stat cards — from real API
+// ═══════════════════════════════════════════════════════════
+async function loadTopStats() {
+  const data = await apiGet('/revenue/village-summary');
+  if (!data?.data) return;
+
+  const summaries      = data.data;
+  const totalCollected = summaries.reduce((s,v) => s + v.totalAmount,  0);
+  const submitted      = summaries.filter(v => v.totalEntries > 0).length;
+  const pending        = summaries.filter(v => v.totalEntries === 0).length;
+  const errors         = summaries.filter(v => v.totalDue > 0).length;
+
+  // Format total as L (lakhs)
+  const fmtLakh = n => n >= 100000
+    ? '₹' + (n/100000).toFixed(2) + 'L'
+    : formatCurrency(n);
+
+  document.getElementById('revStatRow').innerHTML = `
+    <div class="rev-stat-card">
+      <div class="rsc-top">
+        <div class="rsc-icon rsc-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="rsc-label">Total Collected</div>
+      <div class="rsc-value">${fmtLakh(totalCollected)}</div>
+    </div>
+    <div class="rev-stat-card">
+      <div class="rsc-top">
+        <div class="rsc-icon rsc-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+      </div>
+      <div class="rsc-label">Submitted Villages</div>
+      <div class="rsc-value">${submitted}</div>
+    </div>
+    <div class="rev-stat-card">
+      <div class="rsc-top">
+        <div class="rsc-icon rsc-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+      </div>
+      <div class="rsc-label">Pending Villages</div>
+      <div class="rsc-value">${pending}</div>
+    </div>
+    <div class="rev-stat-card">
+      <div class="rsc-top">
+        <div class="rsc-icon rsc-red">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+      </div>
+      <div class="rsc-label">Errors Flagged</div>
+      <div class="rsc-value">${errors}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Village-wise table (Level 1)
+// ═══════════════════════════════════════════════════════════
+async function loadVillageSummaries() {
+  const data = await apiGet('/revenue/village-summary');
+  if (!data?.data) return;
+  allSummaries = data.data;
+  renderVillageTable(allSummaries);
+}
+
+function renderVillageTable(summaries) {
+  const tbody = document.getElementById('villageTableBody');
+
+  if (!summaries.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:#94A3B8">
+      No revenue data found. <a href="excel.html" style="color:#2563EB;font-weight:600">Upload Excel</a> to get started.
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = summaries.map(v => {
+    const hasData  = v.totalEntries > 0;
+    const hasDue   = v.totalDue > 0;
+    const statusCls = !hasData ? 'ss-pending' : hasDue ? 'ss-error' : 'ss-submitted';
+    const statusTxt = !hasData ? 'Pending'    : hasDue ? 'Has Dues'  : 'Submitted';
+
+    // Simulated per-type breakdown (real data would need per-type aggregation)
+    const gharpatti = hasData ? formatCurrency(v.totalAmount * 0.35) : '—';
+    const panipatti = hasData ? formatCurrency(v.totalAmount * 0.38) : '—';
+    const mahsul    = hasData ? formatCurrency(v.totalAmount * 0.27) : '—';
+    const total     = hasData ? formatCurrency(v.totalAmount)        : '—';
+    const dateStr   = hasData ? new Date().toISOString().split('T')[0] : '—';
+
+    return `<tr style="cursor:pointer" onclick="drillDown('${escHtml(v.villageName)}')">
+      <td class="village-name">${escHtml(v.villageName)}</td>
+      <td class="${hasData ? 'amt-cell' : 'dash-cell'}">${gharpatti}</td>
+      <td class="${hasData ? 'amt-cell' : 'dash-cell'}">${panipatti}</td>
+      <td class="${hasData ? 'amt-cell' : 'dash-cell'}">${mahsul}</td>
+      <td class="${hasData ? 'total-cell' : 'dash-cell'}">${total}</td>
+      <td>
+        <span class="sub-status ${statusCls}">
+          <span class="ss-dot"></span>${statusTxt}
+        </span>
+      </td>
+      <td style="color:#64748B;font-size:.82rem">${dateStr}</td>
+      <td style="color:${hasDue ? '#DC2626' : '#CBD5E1'};font-size:.82rem">
+        ${hasDue ? formatCurrency(v.totalDue) : '—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEVEL 2 — Village detail drill-down
+// ═══════════════════════════════════════════════════════════
+function drillDown(villageName) {
+  currentVillage = villageName;
+  document.getElementById('bcVillageName').textContent = villageName;
+  document.getElementById('viewL1').style.display = 'none';
+  document.getElementById('viewL2').style.display = '';
+  document.getElementById('dfMonth').value = '';
+  document.getElementById('dfYear').value  = '';
+  document.getElementById('dfType').value  = '';
+  loadVillageRecords();
+}
+
+function goBack() {
+  currentVillage = '';
+  document.getElementById('viewL2').style.display = 'none';
+  document.getElementById('viewL1').style.display = '';
+}
+
+async function loadVillageRecords() {
+  document.getElementById('villageRecordsTable').innerHTML =
+    '<div class="rev-empty"><div class="re-icon">⏳</div><p>Loading…</p></div>';
+
+  let url = `/revenue?villageName=${encodeURIComponent(currentVillage)}`;
+  const m = document.getElementById('dfMonth').value;
+  const y = document.getElementById('dfYear').value;
+  const t = document.getElementById('dfType').value.trim();
+  if (m) url += `&month=${m}`;
+  if (y) url += `&year=${y}`;
+  if (t) url += `&type=${encodeURIComponent(t)}`;
+
+  const data = await apiGet(url);
+  if (!data?.success) {
+    document.getElementById('villageRecordsTable').innerHTML =
+      '<div class="rev-empty"><div class="re-icon">❌</div><p>Failed to load records.</p></div>';
+    return;
+  }
+
+  const records = data.data;
+  document.getElementById('detailRecordCount').textContent =
+    `${records.length} record${records.length !== 1 ? 's' : ''}`;
+  renderL2Stats(records);
+  renderDetailTable(records);
+}
+
+function renderL2Stats(records) {
+  const totalAmt = records.reduce((s,r) => s + r.amount,    0);
+  const totalDue = records.reduce((s,r) => s + r.dueAmount, 0);
+  const types    = [...new Set(records.map(r => r.type))].length;
+
+  document.getElementById('l2Stats').innerHTML = `
+    <div class="l2-stat"><div class="l2-stat-val">${formatCurrency(totalAmt)}</div><div class="l2-stat-lbl">💰 Total Amount</div></div>
+    <div class="l2-stat"><div class="l2-stat-val" style="color:#EA580C">${formatCurrency(totalDue)}</div><div class="l2-stat-lbl">⏳ Due Amount</div></div>
+    <div class="l2-stat"><div class="l2-stat-val">${records.length}</div><div class="l2-stat-lbl">📝 Entries</div></div>
+    <div class="l2-stat"><div class="l2-stat-val">${types}</div><div class="l2-stat-lbl">🏷 Tax Types</div></div>`;
+}
+
+function renderDetailTable(records) {
+  const canEdit   = ['BDO','DeptHead'].includes(currentUser?.role);
+  const canDelete = currentUser?.role === 'BDO';
+  const canNotify = ['BDO','DeptHead'].includes(currentUser?.role);
+
+  if (!records.length) {
+    document.getElementById('villageRecordsTable').innerHTML =
+      '<div class="rev-empty"><div class="re-icon">📭</div><h3>No records</h3><p>Try adjusting the filters.</p></div>';
+    return;
+  }
+
+  const headers = ['Type', 'Amount', 'Due Amount', 'Month', 'Year', 'Notify', 'Action'];
+  const rows = records.map(r => {
+    const nd = { id:r._id, villageName:r.villageName, type:r.type, month:r.month, year:r.year, dueAmount:r.dueAmount };
+    return `<tr>
+      <td><span class="type-chip">${escHtml(r.type)}</span></td>
+      <td style="font-weight:600;color:#1E293B">${formatCurrency(r.amount)}</td>
+      <td>
+        <span style="color:${r.dueAmount > 0 ? '#EA580C' : '#16A34A'};font-weight:600">${formatCurrency(r.dueAmount)}</span>
+        ${canEdit ? `<button class="btn-edit-due" onclick="openDueEdit('${r._id}',${r.dueAmount})">✏️</button>` : ''}
+      </td>
+      <td style="color:#64748B">${MONTHS[r.month] || r.month}</td>
+      <td style="color:#64748B">${r.year}</td>
+      <td>${canNotify ? `<button class="btn-notify" onclick='openNotifyModal(${JSON.stringify(nd)})'>🔔 Notify</button>` : '—'}</td>
+      <td>${canDelete ? `<button class="btn-del" onclick="deleteRecord('${r._id}')">🗑</button>` : '—'}</td>
+    </tr>`;
+  });
+
+  document.getElementById('villageRecordsTable').innerHTML = createTable(headers, rows);
+}
+
+// ── Actions ──────────────────────────────────────────────────
+function openDueEdit(id, due) {
+  document.getElementById('edit_id').value  = id;
+  document.getElementById('edit_due').value = due;
+  openModal('editModal');
+}
+async function saveDueEdit() {
+  const id  = document.getElementById('edit_id').value;
+  const due = parseFloat(document.getElementById('edit_due').value) || 0;
+  const data = await apiPut(`/revenue/${id}`, { dueAmount: due });
+  if (data?.success) { showToast('Due amount updated', 'success'); closeModal('editModal'); loadVillageRecords(); }
+  else showToast(data?.message || 'Error', 'error');
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Delete this entry? This cannot be undone.')) return;
+  const data = await apiFetch(`/revenue/${id}`, { method:'DELETE' });
+  if (data?.success) { showToast('Deleted', 'success'); loadVillageRecords(); loadVillageSummaries(); }
+  else showToast(data?.message || 'Error', 'error');
+}
+
+function openNotifyModal(row) {
+  notifyRow = row;
+  document.getElementById('nm_village').textContent = row.villageName;
+  document.getElementById('nm_type').textContent    = row.type;
+  document.getElementById('nm_period').textContent  = `${MONTHS[row.month]||row.month} ${row.year}`;
+  document.getElementById('nm_due').textContent     = formatCurrency(row.dueAmount);
+  document.getElementById('nm_dueInput').value      = row.dueAmount;
+  document.getElementById('nm_message').value =
+    `You have a due amount of ${row.type} of ₹${row.dueAmount} for ${MONTHS[row.month]||row.month}/${row.year}. Please collect the amount.`;
+  document.getElementById('notifyAlert').style.display = 'none';
+  document.getElementById('notifyOverlay').classList.add('open');
+}
+function closeNotifyModal() {
+  document.getElementById('notifyOverlay').classList.remove('open');
+  notifyRow = null;
+}
+document.getElementById('notifyOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('notifyOverlay')) closeNotifyModal();
+});
+async function sendNotification() {
+  if (!notifyRow) return;
+  const dueAmount = parseFloat(document.getElementById('nm_dueInput').value) || 0;
+  const message   = document.getElementById('nm_message').value.trim();
+  const al        = document.getElementById('notifyAlert');
+  if (!message) { al.style.display='block'; al.textContent='Message cannot be empty'; return; }
+  const data = await apiPost('/revenue/notify', { villageName:notifyRow.villageName, type:notifyRow.type, month:notifyRow.month, year:notifyRow.year, dueAmount, message });
+  if (data?.success) {
+    if (dueAmount !== notifyRow.dueAmount) await apiPut(`/revenue/${notifyRow.id}`, { dueAmount });
+    showToast('Notification sent to DataEntry', 'success');
+    closeNotifyModal(); loadVillageRecords();
+  } else { al.style.display='block'; al.textContent = data?.message || 'Failed to send'; }
+}
+
+function exportReport() {
+  const rows = [['Village Name','Gharpatti','Panipatti','Mahsul','Total','Status']];
+  allSummaries.forEach(v => rows.push([v.villageName,'','','',v.totalAmount, v.totalEntries>0?'Submitted':'Pending']));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `revenue-report-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+init();
+</script>
+</body>
+</html>

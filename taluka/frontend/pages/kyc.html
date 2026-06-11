@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KYC — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.main-content { background: #F8FAFC; padding: 1.75rem; }
+
+/* ── Section card ── */
+.kyc-section {
+  background: #fff;
+  border: 1px solid #F1F5F9;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+/* ── View toggle tabs ── */
+.kyc-tabs {
+  display: flex; gap: .5rem;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: .3rem;
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+.kyc-tab {
+  padding: .5rem 1.1rem;
+  border: none; border-radius: 9px;
+  font-size: .85rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  color: #64748B; background: transparent;
+  transition: all .18s;
+}
+.kyc-tab.active { background: #fff; color: #2563EB; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+/* ── Photo capture area ── */
+.photo-capture-wrap {
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  background: #FAFBFC;
+}
+.photo-circle {
+  width: 100px; height: 100px;
+  background: #F1F5F9;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.1rem;
+  overflow: hidden;
+  border: 2px solid #E2E8F0;
+}
+.photo-circle svg { width: 40px; height: 40px; stroke: #94A3B8; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+.btn-capture {
+  background: #2563EB; color: #fff;
+  border: none; border-radius: 10px;
+  padding: .6rem 1.5rem;
+  font-size: .9rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: background .18s;
+  display: inline-block;
+}
+.btn-capture:hover { background: #1D4ED8; }
+.photo-hint { font-size: .78rem; color: #94A3B8; margin-top: .6rem; }
+
+/* ── Form ── */
+.kyc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+@media(max-width:640px) { .kyc-form-grid { grid-template-columns: 1fr; } }
+
+.kf-group { display: flex; flex-direction: column; gap: .35rem; }
+.kf-label {
+  font-size: .83rem; font-weight: 600; color: #374151;
+  display: flex; align-items: center; gap: .4rem;
+}
+.kf-label svg { width: 14px; height: 14px; stroke: #94A3B8; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.kf-input, .kf-select, .kf-textarea {
+  padding: .7rem .9rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: .875rem;
+  font-family: inherit;
+  color: #1E293B;
+  background: #fff;
+  outline: none;
+  transition: border-color .18s;
+}
+.kf-input::placeholder, .kf-textarea::placeholder { color: #94A3B8; }
+.kf-input:focus, .kf-select:focus, .kf-textarea:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.kf-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .85rem center; padding-right: 2.2rem; cursor: pointer; }
+
+/* ── Upload Documents ── */
+.upload-docs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+@media(max-width:560px) { .upload-docs-grid { grid-template-columns: 1fr; } }
+
+.upload-doc-box {
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  background: #FAFBFC;
+}
+.upload-doc-box:hover { border-color: #2563EB; background: #EFF6FF; }
+.upload-doc-box svg { width: 22px; height: 22px; stroke: #94A3B8; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: .5rem; transition: stroke .18s; }
+.upload-doc-box:hover svg { stroke: #2563EB; }
+.upload-doc-box span { display: block; font-size: .875rem; font-weight: 600; color: #374151; }
+.upload-doc-box input[type=file] { display: none; }
+
+/* ── Save offline banner ── */
+.offline-banner {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 12px;
+  padding: .85rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.1rem;
+  cursor: pointer;
+}
+.offline-banner input[type=checkbox] {
+  width: 18px; height: 18px;
+  accent-color: #2563EB;
+  cursor: pointer; flex-shrink: 0;
+}
+.offline-banner-text { font-size: .875rem; font-weight: 600; color: #92400E; }
+
+/* ── Form action buttons ── */
+.kyc-actions { display: flex; gap: .75rem; }
+.btn-save-local {
+  padding: .7rem 1.5rem;
+  background: #16A34A; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: .9rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 2px 8px rgba(22,163,74,.25);
+  transition: background .18s;
+}
+.btn-save-local:hover { background: #15803D; }
+.btn-cancel-kyc {
+  padding: .7rem 1.5rem;
+  background: #F1F5F9; color: #374151;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: .9rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: all .18s;
+}
+.btn-cancel-kyc:hover { background: #E2E8F0; }
+
+/* ── Alert inline ── */
+.kyc-alert {
+  padding: .7rem 1rem; border-radius: 9px;
+  font-size: .85rem; font-weight: 500;
+  margin-bottom: 1rem; display: none;
+}
+.kyc-alert.ok  { background: #F0FDF4; border:1px solid #BBF7D0; color: #166534; display: block; }
+.kyc-alert.err { background: #FEF2F2; border:1px solid #FECACA; color: #B91C1C; display: block; }
+
+/* ── KYC Records list ── */
+.kyc-records-title {
+  font-size: 1.05rem; font-weight: 700;
+  color: #1E293B; margin-bottom: 1rem;
+}
+.kyc-record-card {
+  background: #fff;
+  border: 1px solid #F1F5F9;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  transition: box-shadow .18s;
+  cursor: pointer;
+}
+.kyc-record-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+.kyc-record-card.pending-sync { background: #FFFBEB; border-color: #FDE68A; }
+.kyc-record-card.synced { background: #F0FDF4; border-color: #BBF7D0; }
+
+.krc-avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: #2563EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 700;
+  color: #fff; flex-shrink: 0;
+}
+.krc-info { flex: 1; min-width: 0; }
+.krc-name { font-size: .9rem; font-weight: 700; color: #1E293B; margin-bottom: .2rem; }
+.krc-sub  { font-size: .78rem; color: #64748B; margin-bottom: .2rem; }
+.krc-date { font-size: .73rem; color: #94A3B8; }
+.krc-status { flex-shrink: 0; }
+
+.sync-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .28rem .75rem; border-radius: 20px;
+  font-size: .75rem; font-weight: 600;
+  white-space: nowrap;
+}
+.sb-pending { background: #FFF7ED; color: #C2410C; border: 1px solid #FDE68A; }
+.sb-synced  { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+.sb-pending svg, .sb-synced svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* ── Filter + search bar ── */
+.kyc-filter-bar {
+  display: flex; gap: .65rem; flex-wrap: wrap;
+  align-items: center; margin-bottom: 1rem;
+}
+.kyc-search {
+  flex: 1; min-width: 200px; max-width: 340px;
+  padding: .6rem .9rem .6rem 2.3rem;
+  border: 1.5px solid #E2E8F0; border-radius: 10px;
+  font-size: .85rem; font-family: inherit;
+  color: #1E293B; background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") .8rem center no-repeat;
+  outline: none;
+}
+.kyc-search:focus { border-color: #2563EB; }
+.kyc-filter-sel {
+  padding: .55rem .8rem;
+  border: 1.5px solid #E2E8F0; border-radius: 10px;
+  font-size: .83rem; font-family: inherit;
+  background: #fff; color: #374151; outline: none; cursor: pointer;
+}
+
+/* ── View modal ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.kyc-modal { background:#fff; border-radius:16px; width:90%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.18); animation:mIn .2s ease; }
+@keyframes mIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.km-head { padding:1.1rem 1.5rem; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center; }
+.km-head h3 { font-size:.95rem; font-weight:700; color:#1E293B; }
+.km-close { background:none; border:none; cursor:pointer; color:#94A3B8; font-size:1.2rem; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+.km-close:hover { background:#F1F5F9; }
+.km-body { padding:1.4rem 1.5rem; }
+.km-foot { padding:.85rem 1.5rem; border-top:1px solid #F1F5F9; display:flex; gap:.75rem; justify-content:flex-end; }
+.km-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+.km-item label { font-size:.7rem; font-weight:700; text-transform:uppercase; color:#94A3B8; display:block; margin-bottom:.2rem; }
+.km-item span  { font-size:.9rem; font-weight:500; color:#1E293B; }
+.km-item.full  { grid-column:1/-1; }
+.badge-approved{ display:inline-block; padding:.22rem .65rem; background:#F0FDF4; color:#16A34A; border-radius:20px; font-size:.75rem; font-weight:600; }
+.badge-pending { display:inline-block; padding:.22rem .65rem; background:#FFF7ED; color:#C2410C; border-radius:20px; font-size:.75rem; font-weight:600; }
+.badge-rejected{ display:inline-block; padding:.22rem .65px; background:#FEF2F2; color:#DC2626; border-radius:20px; font-size:.75rem; font-weight:600; }
+.btn-approve { padding:.58rem 1.1rem; background:#16A34A; color:#fff; border:none; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-reject  { padding:.58rem 1.1rem; background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* OTP flow */
+.otp-step-bar { display:flex; align-items:center; gap:.6rem; margin-bottom:1.25rem; }
+.otp-num { width:28px; height:28px; border-radius:50%; background:#E2E8F0; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#64748B; }
+.otp-num.done   { background:#16A34A; color:#fff; }
+.otp-num.active { background:#2563EB; color:#fff; }
+.verified-banner { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:10px; padding:.75rem 1rem; color:#166534; font-weight:600; font-size:.875rem; margin-bottom:1rem; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Tab toggle -->
+    <div class="kyc-tabs">
+      <button class="kyc-tab active" id="tabEntryBtn"  onclick="switchView('entry')">📝 New Entry</button>
+      <button class="kyc-tab"        id="tabRecordsBtn" onclick="switchView('records')">📋 KYC Records</button>
+      <button class="kyc-tab"        id="tabOnlineBtn"  onclick="switchView('online')">🌐 Online KYC</button>
+    </div>
+
+    <!-- ═════════════════════════════════════
+         VIEW 1: New KYC Entry (Offline)
+    ═════════════════════════════════════ -->
+    <div id="viewEntry">
+
+      <div class="kyc-section">
+
+        <!-- Photo Capture -->
+        <div class="photo-capture-wrap">
+          <div class="photo-circle" id="photoCircle">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <button class="btn-capture" onclick="document.getElementById('photoInput').click()">Capture Photo</button>
+          <input type="file" id="photoInput" accept="image/*" capture="user" onchange="previewPhoto()" style="display:none">
+          <p class="photo-hint">Take a photo of the beneficiary</p>
+        </div>
+
+        <!-- Alert -->
+        <div class="kyc-alert" id="entryAlert"></div>
+
+        <!-- Form grid -->
+        <div class="kyc-form-grid">
+          <div class="kf-group">
+            <label class="kf-label">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Full Name
+            </label>
+            <input type="text" class="kf-input" id="off_name" placeholder="Enter full name">
+          </div>
+          <div class="kf-group">
+            <label class="kf-label">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Village
+            </label>
+            <select class="kf-select" id="off_village">
+              <option value="">Select Village</option>
+            </select>
+          </div>
+          <div class="kf-group">
+            <label class="kf-label">
+              <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              Aadhaar Number
+            </label>
+            <input type="text" class="kf-input" id="off_aadhaar" placeholder="XXXX-XXXX-XXXX" maxlength="12">
+          </div>
+          <div class="kf-group">
+            <label class="kf-label">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Address
+            </label>
+            <input type="text" class="kf-input" id="off_address" placeholder="Enter address">
+          </div>
+          <div class="kf-group">
+            <label class="kf-label">Gender</label>
+            <select class="kf-select" id="off_gender">
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+          <div class="kf-group">
+            <label class="kf-label">Mobile Number</label>
+            <input type="tel" class="kf-input" id="off_mobile" placeholder="10-digit mobile" maxlength="10">
+          </div>
+        </div>
+
+        <!-- Upload Documents -->
+        <div style="font-size:.9rem;font-weight:700;color:#1E293B;margin-bottom:.75rem">Upload Documents</div>
+        <div class="upload-docs-grid">
+          <div class="upload-doc-box" onclick="document.getElementById('aadhaarDoc').click()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="aadhaarDocLabel">Upload Aadhaar Copy</span>
+            <input type="file" id="aadhaarDoc" accept="image/*,.pdf" onchange="docSelected('aadhaarDocLabel', this)">
+          </div>
+          <div class="upload-doc-box" onclick="document.getElementById('otherDoc').click()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="otherDocLabel">Upload Other ID</span>
+            <input type="file" id="otherDoc" accept="image/*,.pdf" onchange="docSelected('otherDocLabel', this)">
+          </div>
+        </div>
+
+        <!-- Save Offline toggle -->
+        <label class="offline-banner">
+          <input type="checkbox" id="saveOfflineCheck" checked>
+          <span class="offline-banner-text">Save Offline (Sync when connected)</span>
+        </label>
+
+        <!-- Action buttons -->
+        <div class="kyc-actions">
+          <button class="btn-save-local" onclick="submitKycEntry()">Save Locally</button>
+          <button class="btn-cancel-kyc" onclick="resetEntryForm()">Cancel</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ═════════════════════════════════════
+         VIEW 2: KYC Records list
+    ═════════════════════════════════════ -->
+    <div id="viewRecords" style="display:none">
+
+      <!-- Filter bar -->
+      <div class="kyc-filter-bar">
+        <input type="text" class="kyc-search" id="searchKyc" placeholder="Search by name..." oninput="filterKyc()">
+        <select class="kyc-filter-sel" id="filterStatus" onchange="loadKyc()">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <select class="kyc-filter-sel" id="filterMode" onchange="loadKyc()">
+          <option value="">All Modes</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+      </div>
+
+      <div class="kyc-records-title">KYC Records</div>
+      <div id="kycRecordsList">
+        <div style="text-align:center;padding:2.5rem;color:#94A3B8">⏳ Loading records…</div>
+      </div>
+
+    </div>
+
+    <!-- ═════════════════════════════════════
+         VIEW 3: Online KYC (Aadhaar OTP)
+    ═════════════════════════════════════ -->
+    <div id="viewOnline" style="display:none">
+      <div class="kyc-section">
+        <div style="font-size:.95rem;font-weight:700;color:#1E293B;margin-bottom:.25rem">Online KYC via Aadhaar OTP</div>
+        <p style="font-size:.8rem;color:#94A3B8;margin-bottom:1.25rem">Demo Aadhaar numbers: 123456789012, 234567890123</p>
+
+        <div class="kyc-alert" id="onlineAlert"></div>
+
+        <!-- Step 1 -->
+        <div id="step1">
+          <div class="otp-step-bar">
+            <div class="otp-num active">1</div>
+            <span style="font-size:.85rem;color:#374151;font-weight:500">Enter Aadhaar Number</span>
+          </div>
+          <div class="kf-group" style="max-width:340px;margin-bottom:1rem">
+            <label class="kf-label">Aadhaar Number</label>
+            <input type="text" class="kf-input" id="on_aadhaar" placeholder="12-digit Aadhaar number" maxlength="12">
+          </div>
+          <button class="btn-save-local" onclick="generateOtp()">Send OTP →</button>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="step2" style="display:none">
+          <div class="otp-step-bar">
+            <div class="otp-num done">✓</div>
+            <span style="font-size:.85rem;color:#16A34A;font-weight:500">Aadhaar Entered</span>
+            <span style="color:#E2E8F0;margin:0 .25rem">›</span>
+            <div class="otp-num active">2</div>
+            <span style="font-size:.85rem;color:#374151;font-weight:500">Verify OTP</span>
+          </div>
+          <p style="font-size:.85rem;color:#64748B;margin-bottom:1rem">OTP sent to your registered mobile number.</p>
+          <div class="kf-group" style="max-width:240px;margin-bottom:1rem">
+            <label class="kf-label">Enter OTP</label>
+            <input type="text" class="kf-input" id="on_otp" placeholder="6-digit OTP" maxlength="6">
+          </div>
+          <div style="display:flex;gap:.75rem">
+            <button class="btn-cancel-kyc" onclick="backToStep1()">← Back</button>
+            <button class="btn-save-local" onclick="verifyOtp()">Verify OTP →</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="step3" style="display:none">
+          <div class="verified-banner">✅ Aadhaar Verified Successfully</div>
+          <div class="kyc-form-grid" id="onlineFormFields"></div>
+          <button class="btn-save-local" onclick="saveOnlineKyc()">💾 Save KYC Record</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── KYC Detail Modal ── -->
+<div class="modal-overlay" id="viewModal">
+  <div class="kyc-modal">
+    <div class="km-head">
+      <h3>KYC Details</h3>
+      <button class="km-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div class="km-body" id="viewModalBody"></div>
+    <div class="km-foot" id="viewModalFooter"></div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('kyc');
+
+let allKycs   = [];
+let villages  = [];
+let currentOtpAadhaar  = '';
+let verifiedCitizenData = {};
+
+const AVATAR_COLORS = ['#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899'];
+function avatarColor(name) { let h=0; for(const c of (name||'?')) h=(h*31+c.charCodeAt(0))%AVATAR_COLORS.length; return AVATAR_COLORS[h]; }
+function initials(name)    { return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+// ── Init ─────────────────────────────────────────────────────
+async function init() {
+  const vData = await apiGet('/villages');
+  if (vData?.data) {
+    villages = vData.data;
+    const sel = document.getElementById('off_village');
+    villages.forEach(v => sel.innerHTML += `<option value="${v._id}">${v.name}${v.taluka ? ' ('+v.taluka+')' : ''}</option>`);
+  }
+  loadKyc();
+}
+
+// ── View switching ────────────────────────────────────────────
+function switchView(view) {
+  ['entry','records','online'].forEach(v => {
+    document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).style.display = 'none';
+    document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1)+'Btn').classList.remove('active');
+  });
+  document.getElementById('view'+view.charAt(0).toUpperCase()+view.slice(1)).style.display = '';
+  document.getElementById('tab'+view.charAt(0).toUpperCase()+view.slice(1)+'Btn').classList.add('active');
+  if (view === 'records') loadKyc();
+}
+
+// ── Load & render records ─────────────────────────────────────
+async function loadKyc() {
+  const status = document.getElementById('filterStatus')?.value || '';
+  const mode   = document.getElementById('filterMode')?.value   || '';
+  let url = '/kyc?';
+  if (status) url += `status=${status}&`;
+  if (mode)   url += `mode=${mode}&`;
+  const data = await apiGet(url);
+  if (data?.data) { allKycs = data.data; renderKycList(allKycs); }
+}
+
+function filterKyc() {
+  const q = document.getElementById('searchKyc').value.toLowerCase();
+  renderKycList(allKycs.filter(k =>
+    k.name.toLowerCase().includes(q) ||
+    (k.aadhaarMasked||'').includes(q) ||
+    (k.villageId?.name||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderKycList(kycs) {
+  const user = getUser();
+  if (!kycs.length) {
+    document.getElementById('kycRecordsList').innerHTML =
+      '<div style="text-align:center;padding:2.5rem;color:#94A3B8">No KYC records found</div>';
+    return;
+  }
+
+  document.getElementById('kycRecordsList').innerHTML = kycs.map(k => {
+    const isSynced  = k.status === 'approved';
+    const cardCls   = isSynced ? 'synced' : 'pending-sync';
+    const badgeCls  = isSynced ? 'sb-synced'  : 'sb-pending';
+    const badgeTxt  = isSynced ? 'Synced Successfully' : 'Pending Sync';
+    const badgeIcon = isSynced
+      ? `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+      : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    const capturedDate = k.createdAt ? 'Captured: ' + new Date(k.createdAt).toISOString().split('T')[0] : '';
+    const maskedAadhaar = k.aadhaarMasked || '****-****-****';
+    const village = k.villageId?.name || '—';
+
+    return `
+    <div class="kyc-record-card ${cardCls}" onclick="viewKyc('${k._id}')">
+      <div class="krc-avatar" style="background:${avatarColor(k.name)}">${initials(k.name)}</div>
+      <div class="krc-info">
+        <div class="krc-name">${escHtml(k.name)}</div>
+        <div class="krc-sub">${escHtml(village)} · ${escHtml(maskedAadhaar)}</div>
+        <div class="krc-date">${capturedDate}</div>
+      </div>
+      <div class="krc-status">
+        <span class="sync-badge ${badgeCls}">${badgeIcon}${badgeTxt}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── View KYC modal ────────────────────────────────────────────
+function viewKyc(id) {
+  const k = allKycs.find(k => k._id === id);
+  if (!k) return;
+  const user = getUser();
+  const statusMap = { approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' };
+
+  document.getElementById('viewModalBody').innerHTML = `
+    <div class="km-grid">
+      <div class="km-item"><label>Name</label><span>${escHtml(k.name)}</span></div>
+      <div class="km-item"><label>Aadhaar</label><span>${k.aadhaarMasked || '—'}</span></div>
+      <div class="km-item"><label>Gender</label><span>${k.gender || '—'}</span></div>
+      <div class="km-item"><label>Mobile</label><span>${k.mobile || '—'}</span></div>
+      <div class="km-item"><label>Village</label><span>${k.villageId?.name || '—'}</span></div>
+      <div class="km-item"><label>Mode</label><span style="text-transform:capitalize">${k.mode || '—'}</span></div>
+      <div class="km-item"><label>Status</label><span class="${statusMap[k.status]||'badge-pending'}">${k.status}</span></div>
+      <div class="km-item"><label>Submitted</label><span>${k.createdAt ? new Date(k.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</span></div>
+      ${k.address ? `<div class="km-item full"><label>Address</label><span>${escHtml(k.address)}</span></div>` : ''}
+      ${k.remarks ? `<div class="km-item full"><label>Remarks</label><span>${escHtml(k.remarks)}</span></div>` : ''}
+    </div>`;
+
+  const canAct = (user.role === 'BDO' || user.role === 'DeptHead') && k.status === 'pending';
+  document.getElementById('viewModalFooter').innerHTML = canAct ? `
+    <button class="btn-approve" onclick="approveKyc('${k._id}');closeModal('viewModal')">✅ Approve</button>
+    <button class="btn-reject"  onclick="rejectKyc('${k._id}');closeModal('viewModal')">❌ Reject</button>` : '';
+
+  openModal('viewModal');
+}
+
+// ── Approve / Reject ─────────────────────────────────────────
+async function approveKyc(id) {
+  const data = await apiPut(`/kyc/${id}/approve`, { remarks: 'Approved by authority' });
+  if (data?.success) { showToast('KYC Approved', 'success'); loadKyc(); }
+  else showToast(data?.message || 'Error', 'error');
+}
+async function rejectKyc(id) {
+  const remarks = prompt('Reason for rejection:') || 'Rejected';
+  const data    = await apiPut(`/kyc/${id}/reject`, { remarks });
+  if (data?.success) { showToast('KYC Rejected', 'error'); loadKyc(); }
+}
+
+// ── Submit entry form ─────────────────────────────────────────
+async function submitKycEntry() {
+  const name    = document.getElementById('off_name').value.trim();
+  const aadhaar = document.getElementById('off_aadhaar').value.trim();
+  const al      = document.getElementById('entryAlert');
+
+  if (!name || !aadhaar) {
+    al.className = 'kyc-alert err'; al.textContent = 'Full Name and Aadhaar are required';
+    return;
+  }
+  al.className = 'kyc-alert'; // hide
+
+  const payload = {
+    name, aadhaar,
+    gender:    document.getElementById('off_gender').value,
+    mobile:    document.getElementById('off_mobile').value,
+    address:   document.getElementById('off_address').value,
+    villageId: document.getElementById('off_village').value || null,
+    mode: 'offline', status: 'pending'
+  };
+
+  const saveOffline = document.getElementById('saveOfflineCheck').checked;
+  if (saveOffline || !navigator.onLine) {
+    if (typeof saveOffline === 'function') saveOffline('kyc', payload);
+    else {
+      const q = JSON.parse(localStorage.getItem('taluka_offline_queue') || '[]');
+      q.push({ type:'kyc', data: payload, timestamp: new Date().toISOString() });
+      localStorage.setItem('taluka_offline_queue', JSON.stringify(q));
+    }
+    showToast('Saved locally. Will sync when online.', 'success');
+    resetEntryForm();
+    return;
+  }
+
+  const data = await apiPost('/kyc', payload);
+  if (data?.success) {
+    al.className = 'kyc-alert ok'; al.textContent = 'KYC submitted successfully!';
+    setTimeout(() => { resetEntryForm(); switchView('records'); }, 1200);
+  } else {
+    al.className = 'kyc-alert err'; al.textContent = data?.message || 'Submission failed';
+  }
+}
+
+function resetEntryForm() {
+  ['off_name','off_aadhaar','off_mobile','off_address'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('off_village').value = '';
+  document.getElementById('off_gender').value  = 'Male';
+  document.getElementById('saveOfflineCheck').checked = true;
+  document.getElementById('entryAlert').className = 'kyc-alert';
+  document.getElementById('photoCircle').innerHTML =
+    `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+}
+
+function previewPhoto() {
+  const file = document.getElementById('photoInput').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('photoCircle').innerHTML = `<img src="${e.target.result}" alt="photo">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function docSelected(labelId, input) {
+  const name = input.files[0]?.name;
+  if (name) document.getElementById(labelId).textContent = '✅ ' + name;
+}
+
+// ── Online KYC steps ─────────────────────────────────────────
+function showOnlineAlert(msg, type) {
+  const el = document.getElementById('onlineAlert');
+  el.className = `kyc-alert ${type === 'success' ? 'ok' : 'err'}`;
+  el.textContent = msg;
+}
+
+async function generateOtp() {
+  const aadhaar = document.getElementById('on_aadhaar').value.trim();
+  if (aadhaar.length !== 12 || isNaN(aadhaar)) { showOnlineAlert('Enter valid 12-digit Aadhaar', 'error'); return; }
+  const data = await apiPost('/kyc/generate-otp', { aadhaar });
+  if (data?.success) {
+    currentOtpAadhaar = aadhaar;
+    showOnlineAlert(`OTP sent (Demo OTP: ${data.otp})`, 'success');
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+  } else showOnlineAlert(data?.message || 'Error', 'error');
+}
+
+async function verifyOtp() {
+  const otp  = document.getElementById('on_otp').value.trim();
+  const data = await apiPost('/kyc/verify-otp', { aadhaar: currentOtpAadhaar, otp });
+  if (data?.success) {
+    verifiedCitizenData = data.citizenData;
+    showOnlineAlert('OTP Verified!', 'success');
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    document.getElementById('onlineFormFields').innerHTML = `
+      <div class="kf-group"><label class="kf-label">Name</label><input type="text" class="kf-input" id="on_name" value="${verifiedCitizenData.name}" style="background:#F0FDF4;border-color:#BBF7D0"></div>
+      <div class="kf-group"><label class="kf-label">Date of Birth</label><input type="date" class="kf-input" id="on_dob" value="${verifiedCitizenData.dob||''}"></div>
+      <div class="kf-group"><label class="kf-label">Gender</label><input type="text" class="kf-input" id="on_gender" value="${verifiedCitizenData.gender}" style="background:#F0FDF4;border-color:#BBF7D0"></div>
+      <div class="kf-group"><label class="kf-label">Mobile</label><input type="tel" class="kf-input" id="on_mobile" placeholder="Mobile number"></div>
+      <div class="kf-group"><label class="kf-label">Village</label><select class="kf-select" id="on_village"><option value="">Select</option>${villages.map(v=>`<option value="${v._id}">${v.name}</option>`).join('')}</select></div>
+      <div class="kf-group"><label class="kf-label">Address</label><input type="text" class="kf-input" id="on_address" value="${verifiedCitizenData.address||''}"></div>`;
+  } else showOnlineAlert(data?.message || 'Invalid OTP', 'error');
+}
+
+async function saveOnlineKyc() {
+  const payload = {
+    name: document.getElementById('on_name').value,
+    aadhaar: currentOtpAadhaar,
+    dob: document.getElementById('on_dob').value || null,
+    gender: document.getElementById('on_gender').value,
+    mobile: document.getElementById('on_mobile').value,
+    address: document.getElementById('on_address').value,
+    villageId: document.getElementById('on_village').value || null,
+    mode: 'online', status: 'approved'
+  };
+  const data = await apiPost('/kyc', payload);
+  if (data?.success) {
+    showToast('KYC saved!', 'success');
+    resetOnlineKyc();
+    switchView('records');
+  } else showOnlineAlert(data?.message || 'Error', 'error');
+}
+
+function backToStep1() {
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('onlineAlert').className = 'kyc-alert';
+}
+function resetOnlineKyc() {
+  ['step1'].forEach(id => document.getElementById(id).style.display = 'block');
+  ['step2','step3'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('on_aadhaar').value = '';
+  document.getElementById('on_otp').value = '';
+  currentOtpAadhaar = '';
+  document.getElementById('onlineAlert').className = 'kyc-alert';
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+init();
+</script>
+</body>
+</html>

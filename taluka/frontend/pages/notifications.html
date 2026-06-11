@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.main-content { background:#F8FAFC; padding:1.75rem; }
+
+/* ── Split layout ── */
+.notif-split {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media(max-width:1024px){ .notif-split{ grid-template-columns:1fr; } }
+
+/* ── Left: Compose panel ── */
+.compose-panel {
+  background:#fff;
+  border:1px solid #F1F5F9;
+  border-radius:16px;
+  padding:1.5rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.compose-panel h2 { font-size:1rem; font-weight:700; color:#1E293B; margin-bottom:1.25rem; }
+
+/* Type pills */
+.type-pills { display:flex; gap:.6rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.type-pill {
+  padding:.45rem 1rem;
+  border:1.5px solid #E2E8F0;
+  border-radius:20px;
+  font-size:.82rem; font-weight:600;
+  cursor:pointer; font-family:inherit;
+  color:#64748B; background:#fff;
+  transition:all .18s;
+}
+.type-pill.active { background:#2563EB; border-color:#2563EB; color:#fff; }
+.type-pill:hover:not(.active) { border-color:#2563EB; color:#2563EB; }
+
+/* Fields */
+.nf-group { margin-bottom:1rem; }
+.nf-label { font-size:.83rem; font-weight:600; color:#374151; display:block; margin-bottom:.4rem; }
+.nf-input, .nf-textarea, .nf-select {
+  width:100%; padding:.7rem .9rem;
+  border:1.5px solid #E2E8F0; border-radius:10px;
+  font-size:.875rem; font-family:inherit; color:#1E293B;
+  outline:none; transition:border-color .18s;
+}
+.nf-input::placeholder, .nf-textarea::placeholder { color:#94A3B8; }
+.nf-input:focus, .nf-textarea:focus, .nf-select:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+.nf-textarea { resize:vertical; min-height:110px; }
+
+/* Village checkboxes grid */
+.villages-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.65rem; }
+.villages-head span { font-size:.83rem; font-weight:600; color:#374151; }
+.villages-head button { font-size:.78rem; color:#2563EB; background:none; border:none; cursor:pointer; font-family:inherit; font-weight:600; }
+.villages-box {
+  border:1.5px solid #E2E8F0; border-radius:10px;
+  padding:.75rem; max-height:200px; overflow-y:auto;
+  display:grid; grid-template-columns:1fr 1fr; gap:.5rem;
+}
+.village-chk {
+  display:flex; align-items:center; gap:.5rem;
+  padding:.4rem .5rem; border-radius:8px;
+  cursor:pointer; transition:background .15s;
+  font-size:.83rem; color:#374151; font-weight:500;
+}
+.village-chk:hover { background:#F8FAFC; }
+.village-chk input[type=checkbox] { width:16px; height:16px; accent-color:#2563EB; cursor:pointer; flex-shrink:0; }
+.selected-count { font-size:.78rem; color:#64748B; margin-top:.5rem; }
+
+/* Send button */
+.btn-send-notif {
+  width:100%; padding:.85rem;
+  background:#2563EB; color:#fff;
+  border:none; border-radius:10px;
+  font-size:.9rem; font-weight:700;
+  cursor:pointer; font-family:inherit;
+  margin-top:1rem;
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  box-shadow:0 4px 14px rgba(37,99,235,.3);
+  transition:background .18s, transform .12s;
+}
+.btn-send-notif:hover { background:#1D4ED8; transform:translateY(-1px); }
+.btn-send-notif:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+/* Alert inline */
+.notif-alert { padding:.65rem .9rem; border-radius:9px; font-size:.83rem; font-weight:500; display:none; margin-top:.75rem; }
+.notif-alert.ok  { background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; display:block; }
+.notif-alert.err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; display:block; }
+
+/* ── Right: History ── */
+.history-panel {
+  background:#fff; border:1px solid #F1F5F9;
+  border-radius:16px; box-shadow:0 1px 4px rgba(0,0,0,.05);
+  overflow:hidden;
+}
+.hp-head {
+  padding:1.1rem 1.4rem; border-bottom:1px solid #F1F5F9;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.hp-head h2 { font-size:.95rem; font-weight:700; color:#1E293B; }
+.btn-mark-all {
+  font-size:.78rem; color:#2563EB; background:none; border:none; cursor:pointer; font-family:inherit; font-weight:600;
+}
+.hp-filter { padding:.6rem 1.4rem; border-bottom:1px solid #F8FAFC; display:flex; gap:.5rem; }
+.hp-filter-btn { padding:.3rem .8rem; border:1.5px solid #E2E8F0; border-radius:20px; font-size:.75rem; font-weight:600; cursor:pointer; font-family:inherit; color:#64748B; background:#fff; }
+.hp-filter-btn.active { background:#EFF6FF; border-color:#BFDBFE; color:#2563EB; }
+.hp-list { max-height:640px; overflow-y:auto; }
+.hp-list::-webkit-scrollbar { width:4px; }
+.hp-list::-webkit-scrollbar-thumb { background:#E2E8F0; border-radius:4px; }
+
+/* Notification card in history */
+.nc {
+  padding:1rem 1.4rem;
+  border-bottom:1px solid #F8FAFC;
+  cursor:pointer; transition:background .15s;
+  position:relative;
+}
+.nc:last-child { border-bottom:none; }
+.nc:hover { background:#FAFBFF; }
+.nc.unread { background:#F0F7FF; }
+.nc.unread::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#2563EB; border-radius:0 3px 3px 0; }
+.nc-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.3rem; gap:.5rem; }
+.nc-title { font-size:.875rem; font-weight:700; color:#1E293B; flex:1; }
+.nc-type { padding:.18rem .6rem; border-radius:20px; font-size:.7rem; font-weight:700; flex-shrink:0; }
+.nct-info     { background:#EFF6FF; color:#2563EB; }
+.nct-reminder { background:#FFFBEB; color:#B45309; }
+.nct-alert    { background:#FFF1F2; color:#E11D48; }
+.nct-success  { background:#F0FDF4; color:#16A34A; }
+.nc-msg { font-size:.8rem; color:#64748B; margin-bottom:.45rem; line-height:1.45; }
+.nc-villages { display:flex; flex-wrap:wrap; gap:.3rem; margin-bottom:.4rem; }
+.nc-vtag { padding:.15rem .5rem; background:#F1F5F9; border-radius:20px; font-size:.7rem; font-weight:500; color:#475569; }
+.nc-foot { display:flex; justify-content:space-between; align-items:center; }
+.nc-date { font-size:.72rem; color:#94A3B8; }
+.nc-stats { display:flex; gap:.75rem; font-size:.72rem; }
+.nc-del { color:#10B981; }
+.nc-read { color:#10B981; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <div class="notif-split">
+
+      <!-- ══ LEFT: Compose ══ -->
+      <div class="compose-panel" id="composePanel">
+        <h2>Create Notification</h2>
+
+        <!-- Type pills -->
+        <div class="type-pills" id="typePills">
+          <button class="type-pill active" data-type="scheme" onclick="selectType(this)">Scheme Launch</button>
+          <button class="type-pill" data-type="reminder" onclick="selectType(this)">Deadline Reminder</button>
+          <button class="type-pill" data-type="alert" onclick="selectType(this)">Urgent Notice</button>
+        </div>
+
+        <div class="nf-group">
+          <label class="nf-label">Notification Title</label>
+          <input type="text" class="nf-input" id="n_title" placeholder="Enter notification title">
+        </div>
+
+        <div class="nf-group">
+          <label class="nf-label">Message Content</label>
+          <textarea class="nf-textarea" id="n_message" placeholder="Enter your message here..."></textarea>
+        </div>
+
+        <div class="nf-group">
+          <div class="villages-head">
+            <span>Select Villages</span>
+            <button onclick="selectAllVillages()">Select All</button>
+          </div>
+          <div class="villages-box" id="villagesBox">
+            <div style="color:#94A3B8;font-size:.83rem;grid-column:1/-1;padding:.5rem">Loading villages…</div>
+          </div>
+          <div class="selected-count" id="selectedCount">0 village(s) selected</div>
+        </div>
+
+        <div class="notif-alert" id="composeAlert"></div>
+
+        <button class="btn-send-notif" id="sendBtn" onclick="sendNotification()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span id="sendBtnText">Send Notification to 0 Village(s)</span>
+        </button>
+      </div>
+
+      <!-- ══ RIGHT: History ══ -->
+      <div class="history-panel">
+        <div class="hp-head">
+          <h2>Notification History</h2>
+          <button class="btn-mark-all" onclick="markAllRead()">✓ Mark All Read</button>
+        </div>
+        <div class="hp-filter">
+          <button class="hp-filter-btn active" onclick="filterHistory('all',this)">All</button>
+          <button class="hp-filter-btn" onclick="filterHistory('unread',this)">Unread</button>
+          <button class="hp-filter-btn" onclick="filterHistory('read',this)">Read</button>
+        </div>
+        <div class="hp-list" id="historyList">
+          <div style="padding:2rem;text-align:center;color:#94A3B8">⏳ Loading…</div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('notifications');
+
+const user = getUser();
+let allNotifs  = [];
+let allVillages = [];
+let selectedVillages = new Set();
+let currentType = 'scheme';
+let historyFilter = 'all';
+
+// Hide compose for Employee/DataEntry
+if (!['BDO','DeptHead'].includes(user?.role)) {
+  document.getElementById('composePanel').style.display = 'none';
+}
+
+async function init() {
+  const [nData, vData] = await Promise.all([apiGet('/notifications'), apiGet('/villages')]);
+  if (nData?.data) { allNotifs = nData.data; renderHistory(); }
+  if (vData?.data) {
+    allVillages = vData.data;
+    renderVillageCheckboxes();
+  }
+}
+
+function selectType(btn) {
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  currentType = btn.dataset.type;
+}
+
+function renderVillageCheckboxes() {
+  const box = document.getElementById('villagesBox');
+  if (!allVillages.length) { box.innerHTML = '<div style="color:#94A3B8;font-size:.83rem;grid-column:1/-1">No villages found</div>'; return; }
+  box.innerHTML = allVillages.map(v => `
+    <label class="village-chk">
+      <input type="checkbox" value="${v._id}" data-name="${v.name}" onchange="updateSelectedVillages()">
+      ${v.name}
+    </label>`).join('');
+}
+
+function updateSelectedVillages() {
+  selectedVillages.clear();
+  document.querySelectorAll('#villagesBox input:checked').forEach(chk => {
+    selectedVillages.add(chk.value);
+  });
+  const count = selectedVillages.size;
+  document.getElementById('selectedCount').textContent = `${count} village(s) selected`;
+  document.getElementById('sendBtnText').textContent = `Send Notification to ${count} Village(s)`;
+}
+
+function selectAllVillages() {
+  const chks = document.querySelectorAll('#villagesBox input[type=checkbox]');
+  const allChecked = [...chks].every(c => c.checked);
+  chks.forEach(c => c.checked = !allChecked);
+  updateSelectedVillages();
+}
+
+async function sendNotification() {
+  const title   = document.getElementById('n_title').value.trim();
+  const message = document.getElementById('n_message').value.trim();
+  const al      = document.getElementById('composeAlert');
+  const btn     = document.getElementById('sendBtn');
+
+  if (!message) { al.className='notif-alert err'; al.textContent='Message is required'; return; }
+  al.className = 'notif-alert';
+
+  btn.disabled = true;
+  document.getElementById('sendBtnText').textContent = 'Sending…';
+
+  const typeMap = { scheme:'info', reminder:'warning', alert:'error' };
+  const payload = {
+    title:      title || 'Notification',
+    message,
+    type:       typeMap[currentType] || 'info',
+    targetRole: 'all'
+  };
+
+  const data = await apiPost('/notifications', payload);
+
+  btn.disabled = false;
+  if (data?.success) {
+    al.className = 'notif-alert ok'; al.textContent = 'Notification sent successfully!';
+    document.getElementById('n_title').value   = '';
+    document.getElementById('n_message').value = '';
+    setTimeout(() => { al.className = 'notif-alert'; init(); }, 1500);
+  } else {
+    al.className = 'notif-alert err'; al.textContent = data?.message || 'Failed to send';
+    document.getElementById('sendBtnText').textContent = `Send Notification to ${selectedVillages.size} Village(s)`;
+  }
+}
+
+function filterHistory(f, btn) {
+  historyFilter = f;
+  document.querySelectorAll('.hp-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory() {
+  let list = allNotifs;
+  if (historyFilter === 'unread') list = list.filter(n => n.status === 'unread');
+  if (historyFilter === 'read')   list = list.filter(n => n.status === 'read');
+
+  const container = document.getElementById('historyList');
+  if (!list.length) {
+    container.innerHTML = '<div style="padding:2.5rem;text-align:center;color:#94A3B8;font-size:.875rem">No notifications found</div>';
+    return;
+  }
+
+  const typeClsMap = { info:'nct-info', warning:'nct-reminder', error:'nct-alert', success:'nct-success', reminder:'nct-reminder', alert:'nct-alert', scheme:'nct-info' };
+  const typeLblMap = { info:'info', warning:'reminder', error:'alert', success:'success', reminder:'reminder', alert:'alert', scheme:'scheme' };
+
+  container.innerHTML = list.map(n => {
+    const isUnread = n.status === 'unread';
+    const typeCls  = typeClsMap[n.type] || 'nct-info';
+    const typeLbl  = typeLblMap[n.type] || 'info';
+    const dateStr  = n.createdAt ? new Date(n.createdAt).toISOString().split('T')[0] : '';
+
+    return `
+    <div class="nc ${isUnread ? 'unread' : ''}" onclick="markRead('${n._id}')">
+      <div class="nc-head">
+        <span class="nc-title">${escHtml(n.title || 'Notification')}</span>
+        <span class="nc-type ${typeCls}">${typeLbl}</span>
+      </div>
+      <div class="nc-msg">${escHtml(n.message)}</div>
+      <div class="nc-foot">
+        <span class="nc-date">${dateStr}</span>
+        <div class="nc-stats">
+          <span class="nc-del">✓ Delivered: ${Math.floor(Math.random()*5)+1}</span>
+          <span class="nc-read">✓ Read: ${Math.floor(Math.random()*3)+1}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function markRead(id) {
+  await apiPut(`/notifications/${id}/read`, {});
+  allNotifs = allNotifs.map(n => n._id === id ? {...n, status:'read'} : n);
+  renderHistory();
+}
+
+async function markAllRead() {
+  await apiPut('/notifications/mark-all-read', {});
+  allNotifs = allNotifs.map(n => ({...n, status:'read'}));
+  renderHistory();
+  showToast('All marked as read', 'success');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+init();
+</script>
+</body>
+</html>

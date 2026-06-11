@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Verification — BDO Smart Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.main-content { background:#F8FAFC; padding:1.75rem; }
+
+/* Stat cards */
+.fv-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+@media(max-width:640px){ .fv-stats{ grid-template-columns:1fr; } }
+.fv-stat {
+  background:#fff; border:1px solid #F1F5F9;
+  border-radius:16px; padding:1.25rem 1.4rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+  display:flex; flex-direction:column; gap:.4rem;
+}
+.fv-stat-top { display:flex; align-items:center; justify-content:space-between; }
+.fv-stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.fv-stat-icon svg { width:22px; height:22px; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.fv-stat-label { font-size:.8rem; font-weight:600; color:#64748B; }
+.fv-stat-value { font-size:1.75rem; font-weight:800; color:#1E293B; line-height:1; }
+.fsi-blue   { background:#DBEAFE; } .fsi-blue svg   { stroke:#2563EB; }
+.fsi-green  { background:#DCFCE7; } .fsi-green svg  { stroke:#16A34A; }
+.fsi-orange { background:#FED7AA; } .fsi-orange svg { stroke:#EA580C; }
+
+/* Section card */
+.fv-section {
+  background:#fff; border:1px solid #F1F5F9;
+  border-radius:16px; padding:1.4rem;
+  margin-bottom:1.25rem; box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.fv-section-head {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:1.25rem;
+}
+.fv-section-title { font-size:1rem; font-weight:700; color:#1E293B; }
+.fv-section-sub   { font-size:.78rem; color:#94A3B8; margin-top:.15rem; }
+
+/* Check-In green button */
+.btn-checkin {
+  display:flex; align-items:center; gap:.5rem;
+  background:#16A34A; color:#fff;
+  border:none; border-radius:10px;
+  padding:.6rem 1.2rem;
+  font-size:.85rem; font-weight:600;
+  cursor:pointer; font-family:inherit;
+  box-shadow:0 2px 8px rgba(22,163,74,.3);
+  transition:background .18s;
+}
+.btn-checkin:hover { background:#15803D; }
+.btn-checkin svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* GPS placeholder */
+.gps-placeholder {
+  text-align:center; padding:2.5rem;
+  border:1.5px dashed #E2E8F0; border-radius:12px;
+  background:#FAFBFC;
+}
+.gps-placeholder svg { width:48px; height:48px; stroke:#CBD5E1; fill:none; stroke-width:1.5; margin-bottom:.85rem; }
+.gps-placeholder p    { font-size:.875rem; font-weight:600; color:#64748B; margin-bottom:.25rem; }
+.gps-placeholder span { font-size:.78rem; color:#94A3B8; }
+
+/* Active check-in */
+.checkin-active {
+  background:#F0FDF4; border:1.5px solid #BBF7D0;
+  border-radius:12px; padding:1.25rem;
+  display:none; margin-top:1rem;
+}
+.ca-row { display:flex; gap:.85rem; flex-wrap:wrap; }
+.ca-item label { font-size:.68rem; font-weight:700; text-transform:uppercase; color:#94A3B8; display:block; margin-bottom:.15rem; }
+.ca-item span  { font-size:.875rem; font-weight:600; color:#1E293B; }
+.btn-checkout {
+  padding:.55rem 1.1rem; background:#DC2626; color:#fff;
+  border:none; border-radius:9px;
+  font-size:.83rem; font-weight:600; cursor:pointer; font-family:inherit;
+  margin-top:.85rem;
+}
+
+/* Today's activities list */
+.activity-list { display:flex; flex-direction:column; gap:.75rem; }
+.al-item {
+  display:flex; align-items:center; gap:.9rem;
+  padding:.85rem 1rem;
+  background:#F8FAFC; border-radius:12px;
+  border:1px solid #F1F5F9;
+  cursor:pointer; transition:all .18s;
+}
+.al-item:hover { background:#EFF6FF; border-color:#BFDBFE; }
+.al-avatar {
+  width:40px; height:40px; border-radius:50%;
+  background:#2563EB; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:.85rem; font-weight:700; flex-shrink:0;
+}
+.al-info { flex:1; min-width:0; }
+.al-title { font-size:.875rem; font-weight:700; color:#1E293B; margin-bottom:.15rem; }
+.al-sub   { font-size:.75rem; color:#64748B; }
+.al-status {}
+
+/* Status badge */
+.als-completed { display:inline-flex; align-items:center; gap:.35rem; padding:.22rem .7rem; border-radius:20px; font-size:.75rem; font-weight:600; background:#DCFCE7; color:#16A34A; }
+.als-pending   { display:inline-flex; align-items:center; gap:.35rem; padding:.22rem .7rem; border-radius:20px; font-size:.75rem; font-weight:600; background:#FFF7ED; color:#C2410C; }
+.als-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; background:currentColor; }
+
+/* Submit form */
+.vf-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.25rem; margin-bottom:1rem; }
+@media(max-width:600px){ .vf-grid{ grid-template-columns:1fr; } }
+.vf-group { display:flex; flex-direction:column; gap:.35rem; }
+.vf-group label { font-size:.83rem; font-weight:600; color:#374151; }
+.vf-input, .vf-select, .vf-textarea {
+  padding:.68rem .9rem; border:1.5px solid #E2E8F0; border-radius:10px;
+  font-size:.875rem; font-family:inherit; color:#1E293B; outline:none;
+  transition:border-color .18s;
+}
+.vf-input:focus, .vf-select:focus, .vf-textarea:focus { border-color:#2563EB; }
+.vf-group.full { grid-column:1/-1; }
+.btn-submit-v {
+  padding:.68rem 1.5rem; background:#2563EB; color:#fff;
+  border:none; border-radius:10px; font-size:.875rem; font-weight:600;
+  cursor:pointer; font-family:inherit; box-shadow:0 2px 8px rgba(37,99,235,.25);
+}
+.vf-alert { padding:.65rem .9rem; border-radius:9px; font-size:.83rem; font-weight:500; display:none; margin-bottom:.85rem; }
+.vf-alert.ok  { background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; display:block; }
+.vf-alert.err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; display:block; }
+
+/* Filter bar */
+.vf-filter { display:flex; gap:.65rem; margin-bottom:1rem; flex-wrap:wrap; align-items:center; }
+.vf-filter select { padding:.52rem .8rem; border:1.5px solid #E2E8F0; border-radius:9px; font-size:.83rem; font-family:inherit; background:#fff; outline:none; }
+</style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-wrapper">
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Stat cards -->
+    <div class="fv-stats" id="fvStats">
+      <div class="fv-stat">
+        <div class="fv-stat-top">
+          <div class="fv-stat-icon fsi-blue">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+        <div class="fv-stat-label">Total Field Activities</div>
+        <div class="fv-stat-value" id="statTotal">—</div>
+      </div>
+      <div class="fv-stat">
+        <div class="fv-stat-top">
+          <div class="fv-stat-icon fsi-green">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+        <div class="fv-stat-label">Completed Today</div>
+        <div class="fv-stat-value" id="statCompleted">—</div>
+      </div>
+      <div class="fv-stat">
+        <div class="fv-stat-top">
+          <div class="fv-stat-icon fsi-orange">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+        <div class="fv-stat-label">In Progress</div>
+        <div class="fv-stat-value" id="statInProgress">—</div>
+      </div>
+    </div>
+
+    <!-- Field Check-In section -->
+    <div class="fv-section">
+      <div class="fv-section-head">
+        <div>
+          <div class="fv-section-title">Field Check-In</div>
+          <div class="fv-section-sub">Record your field visit with GPS verification</div>
+        </div>
+        <button class="btn-checkin" onclick="doCheckIn()">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Check-In
+        </button>
+      </div>
+
+      <!-- GPS placeholder -->
+      <div class="gps-placeholder" id="gpsPlaceholder">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <p>No active check-in session</p>
+        <span>Click "Check-In" to start recording your field visit</span>
+      </div>
+
+      <!-- Active check-in display -->
+      <div class="checkin-active" id="checkinActive">
+        <div class="ca-row">
+          <div class="ca-item"><label>📍 Location</label><span id="caLocation">Getting location…</span></div>
+          <div class="ca-item"><label>⏱ Start Time</label><span id="caTime">—</span></div>
+          <div class="ca-item"><label>📅 Date</label><span id="caDate">—</span></div>
+        </div>
+        <button class="btn-checkout" onclick="doCheckOut()">✓ Check Out</button>
+      </div>
+    </div>
+
+    <!-- Today's Field Activities -->
+    <div class="fv-section">
+      <div class="fv-section-head">
+        <div>
+          <div class="fv-section-title">Today's Field Activities</div>
+        </div>
+        <div style="display:flex;gap:.6rem;align-items:center">
+          <select class="vf-select" id="fStatus" onchange="loadVerifications()" style="padding:.45rem .75rem;font-size:.82rem">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="verified">Verified</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button onclick="switchView('submit')" id="addBtn"
+            style="padding:.45rem .9rem;background:#2563EB;color:#fff;border:none;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">
+            + Submit
+          </button>
+        </div>
+      </div>
+      <div class="activity-list" id="vList">
+        <div style="text-align:center;padding:2rem;color:#94A3B8">⏳ Loading activities…</div>
+      </div>
+    </div>
+
+    <!-- Submit Verification (hidden initially) -->
+    <div class="fv-section" id="submitSection" style="display:none">
+      <div class="fv-section-head">
+        <div class="fv-section-title">📸 Submit Field Verification</div>
+        <button onclick="switchView('list')" style="background:none;border:1.5px solid #E2E8F0;border-radius:8px;padding:.35rem .75rem;font-size:.8rem;font-weight:600;color:#64748B;cursor:pointer;font-family:inherit">← Back</button>
+      </div>
+      <div class="vf-alert" id="vAlert"></div>
+      <div class="vf-grid">
+        <div class="vf-group">
+          <label>Title *</label>
+          <input type="text" class="vf-input" id="v_title" placeholder="e.g. Road Repair Verification">
+        </div>
+        <div class="vf-group">
+          <label>Village</label>
+          <select class="vf-select" id="v_village"><option value="">Select Village</option></select>
+        </div>
+        <div class="vf-group full">
+          <label>Description</label>
+          <textarea class="vf-textarea" id="v_desc" rows="3" placeholder="Describe what was verified"></textarea>
+        </div>
+        <div class="vf-group">
+          <label>Location (GPS)</label>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <button type="button" onclick="getLocation()"
+              style="padding:.55rem 1rem;background:#F1F5F9;border:1.5px solid #E2E8F0;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;color:#374151">
+              📍 Get My Location
+            </button>
+            <span id="locationStatus" style="font-size:.8rem;color:#94A3B8">Not captured</span>
+          </div>
+          <input type="hidden" id="v_lat"><input type="hidden" id="v_lng">
+        </div>
+        <div class="vf-group">
+          <label>Upload Image Proof</label>
+          <input type="file" id="v_image" accept="image/*" onchange="previewImg()"
+            style="padding:.5rem;border:1.5px solid #E2E8F0;border-radius:9px;font-size:.83rem;font-family:inherit;width:100%">
+          <div id="imagePreview" style="margin-top:.5rem"></div>
+        </div>
+      </div>
+      <button class="btn-submit-v" onclick="submitVerification()">📤 Submit Verification</button>
+    </div>
+
+  </main>
+</div>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+initLayout('verification');
+let villages = [], verifications = [];
+let checkInActive = false;
+
+const AVATAR_COLORS = ['#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6'];
+function avatarColor(s) { let h=0; for(const c of (s||'?')) h=(h*31+c.charCodeAt(0))%AVATAR_COLORS.length; return AVATAR_COLORS[h]; }
+function initials(s) { return (s||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+async function init() {
+  const vData = await apiGet('/villages');
+  if (vData?.data) {
+    villages = vData.data;
+    const sel = document.getElementById('v_village');
+    villages.forEach(v => sel.innerHTML += `<option value="${v._id}">${v.name}</option>`);
+  }
+  loadVerifications();
+}
+
+async function loadVerifications() {
+  const status = document.getElementById('fStatus').value;
+  const data = await apiGet(`/verification${status ? '?status='+status : ''}`);
+  if (data?.data) { verifications = data.data; renderStats(); renderList(); }
+}
+
+function renderStats() {
+  const total   = verifications.length;
+  const verified = verifications.filter(v => v.status === 'verified').length;
+  const pending  = verifications.filter(v => v.status === 'pending').length;
+  document.getElementById('statTotal').textContent     = total;
+  document.getElementById('statCompleted').textContent = verified;
+  document.getElementById('statInProgress').textContent = pending;
+}
+
+function renderList() {
+  const user = getUser();
+  if (!verifications.length) {
+    document.getElementById('vList').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:#94A3B8;font-size:.875rem">No field activities found</div>';
+    return;
+  }
+
+  const canAct = user?.role === 'BDO' || user?.role === 'DeptHead';
+
+  document.getElementById('vList').innerHTML = verifications.map(v => {
+    const isVerified = v.status === 'verified';
+    const statusHtml = isVerified
+      ? `<span class="als-completed"><span class="als-dot"></span>Completed</span>`
+      : `<span class="als-pending"><span class="als-dot"></span>Pending</span>`;
+
+    return `
+    <div class="al-item">
+      <div class="al-avatar" style="background:${avatarColor(v.title)}">${initials(v.title)}</div>
+      <div class="al-info">
+        <div class="al-title">${escHtml(v.title)}</div>
+        <div class="al-sub">${v.villageId?.name||'—'} · ${v.submittedBy?.name||'Field Officer'}</div>
+      </div>
+      <div class="al-status" style="display:flex;align-items:center;gap:.5rem">
+        ${statusHtml}
+        ${canAct && v.status==='pending' ? `
+          <button onclick="verify('${v._id}','verify')" title="Verify"
+            style="width:28px;height:28px;border-radius:50%;background:#DCFCE7;border:1px solid #BBF7D0;color:#16A34A;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✓</button>
+          <button onclick="verify('${v._id}','reject')" title="Reject"
+            style="width:28px;height:28px;border-radius:50%;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function verify(id, action) {
+  const data = await apiPut(`/verification/${id}/${action}`, {});
+  if (data?.success) { showToast(data.message, 'success'); loadVerifications(); }
+}
+
+// Check-In
+async function doCheckIn() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    checkInActive = true;
+    const now = new Date();
+    document.getElementById('gpsPlaceholder').style.display = 'none';
+    document.getElementById('checkinActive').style.display = 'block';
+    document.getElementById('caLocation').textContent = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+    document.getElementById('caTime').textContent     = now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('caDate').textContent     = now.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+    showToast('Checked in successfully!', 'success');
+  }, () => showToast('Could not get location', 'error'));
+}
+
+function doCheckOut() {
+  checkInActive = false;
+  document.getElementById('checkinActive').style.display = 'none';
+  document.getElementById('gpsPlaceholder').style.display = 'block';
+  showToast('Checked out', 'success');
+}
+
+// Submit form
+function switchView(view) {
+  document.getElementById('submitSection').style.display = view === 'submit' ? '' : 'none';
+}
+
+function getLocation() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+  document.getElementById('locationStatus').textContent = 'Getting location...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('v_lat').value = pos.coords.latitude;
+    document.getElementById('v_lng').value = pos.coords.longitude;
+    document.getElementById('locationStatus').textContent = `✅ ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+  }, () => { document.getElementById('locationStatus').textContent = '❌ Failed'; });
+}
+
+function previewImg() {
+  const file = document.getElementById('v_image').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('imagePreview').innerHTML =
+      `<img src="${e.target.result}" style="max-width:180px;max-height:120px;border-radius:8px;border:2px solid #E2E8F0">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitVerification() {
+  const title = document.getElementById('v_title').value.trim();
+  const al = document.getElementById('vAlert');
+  if (!title) { al.className='vf-alert err'; al.textContent='Title is required'; return; }
+  al.className = 'vf-alert';
+
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('description', document.getElementById('v_desc').value);
+  formData.append('villageId', document.getElementById('v_village').value);
+  formData.append('latitude', document.getElementById('v_lat').value);
+  formData.append('longitude', document.getElementById('v_lng').value);
+  const img = document.getElementById('v_image').files[0];
+  if (img) formData.append('image', img);
+
+  const data = await apiUpload('/verification', formData);
+  if (data?.success) {
+    showToast('Verification submitted!', 'success');
+    document.getElementById('v_title').value = '';
+    document.getElementById('v_desc').value  = '';
+    document.getElementById('imagePreview').innerHTML = '';
+    document.getElementById('locationStatus').textContent = 'Not captured';
+    switchView('list');
+    loadVerifications();
+  } else {
+    al.className = 'vf-alert err'; al.textContent = data?.message || 'Error submitting';
+  }
+}
+
+function escHtml(s) { return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+init();
+</script>
+</body>
+</html>

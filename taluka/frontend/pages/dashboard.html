@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — BDO Smart Governance Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --gov-navy:    #003087;
+  --gov-saffron: #FF6200;
+  --gov-green:   #138808;
+  --gov-white:   #FFFFFF;
+  --gov-cream:   #F5F0E8;
+  --gov-light:   #EEF2F8;
+  --gov-border:  #C8D6E8;
+  --gov-text:    #1A2840;
+  --gov-muted:   #5A6A82;
+  --gov-accent:  #0057A8;
+  --gov-gold:    #C8940A;
+  --shadow-sm:   0 1px 4px rgba(0,48,135,.10);
+  --shadow-md:   0 3px 12px rgba(0,48,135,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans', sans-serif; background: var(--gov-cream); color: var(--gov-text); }
+
+/* ─── HEADER ─── */
+.gov-header-strip {
+  background: linear-gradient(135deg, var(--gov-navy) 0%, #004AAD 100%);
+  padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between;
+  height: 64px; border-bottom: 3px solid var(--gov-saffron);
+}
+.gov-header-left { display: flex; align-items: center; gap: 1rem; }
+.gov-emblem { width: 46px; height: 46px; background: var(--gov-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; border: 2px solid var(--gov-saffron); }
+.gov-title-block .gov-title-hi  { font-family: 'Noto Serif', serif; font-size: .78rem; color: rgba(255,255,255,.75); letter-spacing: .04em; }
+.gov-title-block .gov-title-en  { font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.gov-title-block .gov-title-sub { font-size: .7rem; color: rgba(255,255,255,.65); margin-top: .1rem; }
+.gov-header-right { display: flex; align-items: center; gap: 1rem; }
+.gov-flag-strip { display: flex; gap: 3px; }
+.gov-flag-strip span { display: block; width: 6px; height: 30px; border-radius: 2px; }
+.gov-topbar-btn { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); color: #fff; padding: .35rem .85rem; border-radius: 4px; font-size: .78rem; cursor: pointer; font-family: 'Noto Sans', sans-serif; display: flex; align-items: center; gap: .4rem; transition: background .18s; }
+.gov-topbar-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ─── NAV ─── */
+.gov-navbar { background: var(--gov-accent); display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 2px solid var(--gov-green); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,48,135,.18); overflow-x: auto; }
+.gov-nav-item { padding: .75rem 1.1rem; color: rgba(255,255,255,.82); font-size: .82rem; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all .18s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: .4rem; }
+.gov-nav-item:hover { color: #fff; background: rgba(255,255,255,.1); }
+.gov-nav-item.active { color: #fff; border-bottom-color: var(--gov-saffron); font-weight: 700; }
+.gov-nav-sep { width: 1px; background: rgba(255,255,255,.2); height: 20px; margin: 0 .25rem; flex-shrink: 0; }
+
+/* ─── BREADCRUMB ─── */
+.gov-breadcrumb { background: var(--gov-white); border-bottom: 1px solid var(--gov-border); padding: .55rem 1.5rem; display: flex; align-items: center; gap: .4rem; font-size: .76rem; color: var(--gov-muted); }
+.gov-breadcrumb a { color: var(--gov-accent); text-decoration: none; }
+.gov-breadcrumb a:hover { text-decoration: underline; }
+
+/* ─── MAIN ─── */
+.main-content { padding: 1.5rem; }
+
+/* ─── STAT CARDS ─── */
+.dash-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.dsc {
+  background: var(--gov-white); border-radius: 4px; padding: 1rem 1.1rem .9rem;
+  box-shadow: var(--shadow-sm); cursor: pointer;
+  border: 1px solid var(--gov-border); border-top: 3px solid var(--gov-navy);
+  transition: transform .18s, box-shadow .18s;
+}
+.dsc:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.dsc-icon-wrap {
+  width: 40px; height: 40px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: .75rem; font-size: 1.15rem;
+  border: 1px solid var(--gov-border);
+}
+.dsc-value { font-size: 1.6rem; font-weight: 800; color: var(--gov-navy); line-height: 1; margin-bottom: .3rem; }
+.dsc-label { font-size: .72rem; font-weight: 600; color: var(--gov-muted); text-transform: uppercase; letter-spacing: .04em; }
+.dsc-trend { font-size: .7rem; font-weight: 700; margin-top: .4rem; }
+.trend-up   { color: var(--gov-green); }
+.trend-down { color: #CC1B1B; }
+.ic-blue   { background: #E8F0FB; }
+.ic-green  { background: #E6F4EA; }
+.ic-orange { background: #FFF3EC; }
+.ic-yellow { background: #FFFBEA; }
+.ic-purple { background: #F3E5F5; }
+.ic-teal   { background: #E0F7FA; }
+.ic-red    { background: #FFEBEE; }
+
+/* ─── GOV CARD ─── */
+.gov-card {
+  background: var(--gov-white); border-radius: 4px; border: 1px solid var(--gov-border);
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.gov-card-head {
+  padding: .75rem 1.2rem; border-bottom: 2px solid var(--gov-border);
+  display: flex; justify-content: space-between; align-items: center;
+  background: #EEF2F8;
+}
+.gov-card-head h3 { font-size: .88rem; font-weight: 700; color: var(--gov-navy); text-transform: uppercase; letter-spacing: .04em; margin: 0; }
+.gov-card-head p  { font-size: .72rem; color: var(--gov-muted); margin: .1rem 0 0; }
+.gov-card-body { padding: 1.2rem; }
+
+/* ─── CHARTS ROW ─── */
+.dash-charts-row {
+  display: grid; grid-template-columns: 1fr 380px;
+  gap: 1.1rem; margin-bottom: 1.25rem;
+}
+.chart-wrap { position: relative; height: 260px; }
+
+/* Custom Pie Legend */
+.pie-legend { display: flex; flex-direction: column; gap: .55rem; margin-top: .85rem; }
+.pie-legend-item { display: flex; align-items: center; justify-content: space-between; font-size: .82rem; padding: .4rem .65rem; border-radius: 3px; background: var(--gov-light); border-left: 3px solid transparent; }
+.pie-legend-left  { display: flex; align-items: center; gap: .55rem; }
+.pie-dot          { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+.pie-legend-name  { font-weight: 600; color: var(--gov-navy); }
+.pie-legend-val   { font-weight: 800; color: var(--gov-navy); font-size: .85rem; }
+.pie-legend-pct   { font-size: .7rem; color: var(--gov-muted); font-weight: 600; }
+
+/* Bar legend */
+.bar-legend { display: flex; gap: 1rem; margin-bottom: .75rem; }
+.bar-legend-item { display: flex; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 600; color: var(--gov-muted); }
+.bar-legend-swatch { width: 14px; height: 10px; border-radius: 2px; }
+
+/* ─── BOTTOM ROW ─── */
+.dash-bottom-row {
+  display: grid; grid-template-columns: 1fr 360px;
+  gap: 1.1rem; margin-bottom: 1.25rem;
+}
+
+/* Approval items */
+.approval-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .8rem 1.2rem; border-bottom: 1px solid #EDF0F5; transition: background .15s;
+}
+.approval-item:last-child { border-bottom: none; }
+.approval-item:hover { background: var(--gov-light); }
+.approval-title { font-size: .845rem; font-weight: 600; color: var(--gov-navy); margin-bottom: .15rem; }
+.approval-dept  { font-size: .72rem; color: var(--gov-muted); }
+.approval-right { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; flex-shrink: 0; }
+.approval-count { font-size: .7rem; color: var(--gov-muted); }
+.priority-badge { padding: .18rem .6rem; border-radius: 3px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.pr-high   { background: #FFEBEE; color: #B71C1C; border: 1px solid #FFCDD2; }
+.pr-medium { background: #FFFBEA; color: #7B4F00; border: 1px solid #F5D888; }
+.pr-low    { background: #E6F4EA; color: #1B5E20; border: 1px solid #A8D5AF; }
+
+/* Alerts */
+.alert-list { display: flex; flex-direction: column; gap: .65rem; padding: 1rem 1.2rem; }
+.sys-alert { display: flex; align-items: flex-start; gap: .7rem; border-radius: 3px; padding: .75rem .9rem; }
+.sys-alert.warn  { background: #FFFBEB; border: 1px solid #F5D888; border-left: 3px solid #C8940A; }
+.sys-alert.error { background: #FFEBEE; border: 1px solid #FFCDD2; border-left: 3px solid #CC1B1B; }
+.sys-alert.info  { background: #E8F0FB; border: 1px solid #93B8E0; border-left: 3px solid var(--gov-navy); }
+.sys-alert-icon { font-size: .95rem; flex-shrink: 0; margin-top: .05rem; }
+.sys-alert-msg  { font-size: .82rem; font-weight: 600; color: var(--gov-text); margin-bottom: .1rem; }
+.sys-alert-time { font-size: .7rem; color: var(--gov-muted); }
+
+/* ─── RECENT ACTIVITY ROW ─── */
+.dash-recent-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.1rem; margin-bottom: 1.25rem;
+}
+.activity-item { display: flex; align-items: center; gap: .7rem; padding: .65rem 1.2rem; border-bottom: 1px solid #EDF0F5; }
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover { background: var(--gov-light); }
+.act-icon { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: .88rem; flex-shrink: 0; background: var(--gov-light); border: 1px solid var(--gov-border); }
+.act-body { flex: 1; min-width: 0; }
+.act-body strong { display: block; font-size: .82rem; font-weight: 600; color: var(--gov-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.act-body span   { font-size: .71rem; color: var(--gov-muted); }
+.sbadge { padding: .18rem .6rem; border-radius: 3px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.sbadge-green  { background: #E6F4EA; color: #1B5E20; border: 1px solid #A8D5AF; }
+.sbadge-yellow { background: #FFFBEA; color: #7B4F00; border: 1px solid #F5D888; }
+.sbadge-red    { background: #FFEBEE; color: #B71C1C; border: 1px solid #FFCDD2; }
+.sbadge-gray   { background: var(--gov-light); color: var(--gov-muted); border: 1px solid var(--gov-border); }
+.empty-msg { padding: 1.25rem; font-size: .83rem; color: var(--gov-muted); text-align: center; }
+
+/* ─── FIELD ACTIVITY TABLE ─── */
+.rfa-table { width: 100%; border-collapse: collapse; }
+.rfa-table th {
+  padding: .65rem 1.1rem; text-align: left; font-size: .7rem;
+  font-weight: 700; color: var(--gov-navy); text-transform: uppercase;
+  letter-spacing: .05em; border-bottom: 2px solid var(--gov-border); background: #EEF2F8;
+  white-space: nowrap; border-right: 1px solid var(--gov-border);
+}
+.rfa-table th:last-child { border-right: none; }
+.rfa-table td {
+  padding: .8rem 1.1rem; font-size: .845rem; color: var(--gov-text);
+  border-bottom: 1px solid #EDF0F5; border-right: 1px solid #F0F3F8; vertical-align: middle;
+}
+.rfa-table td:last-child { border-right: none; }
+.rfa-table tbody tr:nth-child(even) td { background: #FAFBFD; }
+.rfa-table tbody tr:hover td { background: #EEF4FF; }
+.rfa-emp-name { font-weight: 600; color: var(--gov-navy); }
+.rfa-location { color: var(--gov-accent); font-weight: 600; }
+.rfa-time { color: var(--gov-muted); font-size: .78rem; }
+.rfa-success { display: inline-flex; align-items: center; gap: .3rem; background: #E6F4EA; color: #1B5E20; padding: .2rem .6rem; border-radius: 3px; font-size: .73rem; font-weight: 700; border: 1px solid #A8D5AF; }
+.rfa-failed  { display: inline-flex; align-items: center; gap: .3rem; background: #FFEBEE; color: #B71C1C; padding: .2rem .6rem; border-radius: 3px; font-size: .73rem; font-weight: 700; border: 1px solid #FFCDD2; }
+.rfa-pending { display: inline-flex; align-items: center; gap: .3rem; background: #FFFBEA; color: #7B4F00; padding: .2rem .6rem; border-radius: 3px; font-size: .73rem; font-weight: 700; border: 1px solid #F5D888; }
+
+/* ─── PENDING BADGE ─── */
+.pending-badge { background: var(--gov-saffron); color: #fff; border-radius: 3px; padding: .2rem .75rem; font-size: .73rem; font-weight: 700; }
+
+/* ─── SECTION DIVIDER ─── */
+.section-title-row {
+  display: flex; align-items: center; gap: .75rem;
+  margin-bottom: 1rem;
+}
+.section-title-row h2 {
+  font-size: .78rem; font-weight: 700; color: var(--gov-navy);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.section-title-row::after {
+  content: ''; flex: 1; height: 1px; background: var(--gov-border);
+}
+
+/* ─── VIEW ALL LINK ─── */
+.view-all-link { font-size: .76rem; color: var(--gov-accent); text-decoration: none; font-weight: 600; }
+.view-all-link:hover { text-decoration: underline; }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1100px) {
+  .dash-charts-row, .dash-bottom-row { grid-template-columns: 1fr; }
+  .dash-recent-row { grid-template-columns: 1fr; }
+}
+@media(max-width:640px) {
+  .dash-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .main-content { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header class="gov-header-strip">
+  <div class="gov-header-left">
+    <div class="gov-emblem">🏛️</div>
+    <div class="gov-title-block">
+      <div class="gov-title-hi">भारत सरकार — BDO स्मार्ट गवर्नेंस पोर्टल</div>
+      <div class="gov-title-en">BDO Smart Governance Portal</div>
+      <div class="gov-title-sub">Ministry of Panchayati Raj &nbsp;|&nbsp; Government of India</div>
+    </div>
+  </div>
+  <div class="gov-header-right">
+    <div class="gov-flag-strip">
+      <span style="background:#FF6200"></span>
+      <span style="background:#FFFFFF"></span>
+      <span style="background:#138808"></span>
+    </div>
+    <button class="gov-topbar-btn">👤 Admin</button>
+    <button class="gov-topbar-btn">🔔 <span style="background:#FF6200;color:#fff;font-size:.65rem;padding:.05rem .35rem;border-radius:10px;font-weight:700">3</span></button>
+    <button class="gov-topbar-btn">⎋ Logout</button>
+  </div>
+</header>
+
+<!-- ─── NAV ─── -->
+<nav class="gov-navbar">
+  <a href="dashboard.html" class="gov-nav-item active">🏠 Dashboard</a>
+  <div class="gov-nav-sep"></div>
+  <a href="villages.html"     class="gov-nav-item">🏘 Villages</a>
+  <div class="gov-nav-sep"></div>
+  <a href="employees.html"    class="gov-nav-item">👥 Employees</a>
+  <div class="gov-nav-sep"></div>
+  <a href="departments.html"  class="gov-nav-item">🏢 Departments</a>
+  <div class="gov-nav-sep"></div>
+  <a href="kyc.html"          class="gov-nav-item">🧾 KYC Records</a>
+  <div class="gov-nav-sep"></div>
+  <a href="revenue.html"      class="gov-nav-item">💰 Revenue</a>
+  <div class="gov-nav-sep"></div>
+  <a href="bills.html"        class="gov-nav-item">📋 Bills</a>
+  <div class="gov-nav-sep"></div>
+  <a href="verification.html" class="gov-nav-item">✅ Verification</a>
+  <div class="gov-nav-sep"></div>
+  <a href="analytics.html"    class="gov-nav-item">📊 Analytics</a>
+</nav>
+
+<!-- ─── BREADCRUMB ─── -->
+<div class="gov-breadcrumb">
+  <a href="dashboard.html">Home</a>
+  <span>›</span>
+  <span>Dashboard Overview</span>
+</div>
+
+<!-- ─── MAIN ─── -->
+<main class="main-content">
+
+  <!-- SECTION: Overview -->
+  <div class="section-title-row"><h2>📊 Overview Summary</h2></div>
+
+  <!-- Stat Cards -->
+  <div class="dash-stats-row" id="statsRow">
+    <div class="dsc" onclick="window.location.href='villages.html'">
+      <div class="dsc-icon-wrap ic-blue">🏢</div>
+      <div class="dsc-value" id="sv-villages">142</div>
+      <div class="dsc-label">Villages Covered</div>
+      <div class="dsc-trend trend-up">▲ 5 this month</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='employees.html'">
+      <div class="dsc-icon-wrap ic-green">👥</div>
+      <div class="dsc-value" id="sv-employees">89</div>
+      <div class="dsc-label">Active Employees</div>
+      <div class="dsc-trend trend-up">▲ 3 new</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='revenue.html'" style="border-top-color:var(--gov-saffron)">
+      <div class="dsc-icon-wrap ic-orange">💰</div>
+      <div class="dsc-value" id="sv-revenue">₹4.2Cr</div>
+      <div class="dsc-label">Total Revenue</div>
+      <div class="dsc-trend trend-up">▲ 12% vs last month</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='kyc.html'">
+      <div class="dsc-icon-wrap ic-purple">🧾</div>
+      <div class="dsc-value" id="sv-kyc">1,284</div>
+      <div class="dsc-label">KYC Records</div>
+      <div class="dsc-trend trend-up">▲ 48 new</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='kyc.html'" style="border-top-color:var(--gov-green)">
+      <div class="dsc-icon-wrap ic-green">✅</div>
+      <div class="dsc-value" id="sv-approved">986</div>
+      <div class="dsc-label">KYC Approved</div>
+      <div class="dsc-trend trend-up">76.8% approval rate</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='verification.html'" style="border-top-color:#C8940A">
+      <div class="dsc-icon-wrap ic-yellow">⏳</div>
+      <div class="dsc-value" id="sv-pending">37</div>
+      <div class="dsc-label">Pending Tasks</div>
+      <div class="dsc-trend trend-down">▼ Needs attention</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='bills.html'" style="border-top-color:#CC1B1B">
+      <div class="dsc-icon-wrap ic-red">🚨</div>
+      <div class="dsc-value" id="sv-flagged">12</div>
+      <div class="dsc-label">Flagged Bills</div>
+      <div class="dsc-trend trend-down">▼ Review needed</div>
+    </div>
+    <div class="dsc" onclick="window.location.href='notifications.html'" style="border-top-color:var(--gov-accent)">
+      <div class="dsc-icon-wrap ic-teal">🔔</div>
+      <div class="dsc-value" id="sv-notif">24</div>
+      <div class="dsc-label">Notifications</div>
+      <div class="dsc-trend" style="color:var(--gov-accent);font-weight:700">3 unread</div>
+    </div>
+  </div>
+
+  <!-- SECTION: Charts -->
+  <div class="section-title-row"><h2>📈 Data Visualisation</h2></div>
+  <div class="dash-charts-row">
+
+    <!-- Bar Chart -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <div>
+          <h3>Revenue vs Target — Department Wise</h3>
+          <p>Monthly comparison: Actual collection vs. Budget target (₹ in Lakhs)</p>
+        </div>
+      </div>
+      <div class="gov-card-body">
+        <div class="bar-legend">
+          <div class="bar-legend-item"><div class="bar-legend-swatch" style="background:#3B7DD8"></div> Actual Collection</div>
+          <div class="bar-legend-item"><div class="bar-legend-swatch" style="background:#E8593C"></div> Budget Target</div>
+          <div class="bar-legend-item"><div class="bar-legend-swatch" style="background:#9EB5D6"></div> Last Year</div>
+        </div>
+        <div class="chart-wrap"><canvas id="barChart" role="img" aria-label="Grouped bar chart showing Revenue vs Target by Department">Department revenue data</canvas></div>
+      </div>
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <div>
+          <h3>KYC Status Distribution</h3>
+          <p>Current record status breakdown</p>
+        </div>
+      </div>
+      <div class="gov-card-body">
+        <div style="height:175px;position:relative">
+          <canvas id="pieChart" role="img" aria-label="Pie chart of KYC status: 986 approved, 156 pending, 87 rejected, 55 under review">KYC: 986 approved, 156 pending, 87 rejected, 55 under review.</canvas>
+        </div>
+        <div class="pie-legend" id="pieLegend">
+          <div class="pie-legend-item" style="border-left-color:#138808">
+            <div class="pie-legend-left"><div class="pie-dot" style="background:#138808"></div><span class="pie-legend-name">Approved</span></div>
+            <div><span class="pie-legend-val">986</span> <span class="pie-legend-pct">76.8%</span></div>
+          </div>
+          <div class="pie-legend-item" style="border-left-color:#C8940A">
+            <div class="pie-legend-left"><div class="pie-dot" style="background:#C8940A"></div><span class="pie-legend-name">Pending</span></div>
+            <div><span class="pie-legend-val">156</span> <span class="pie-legend-pct">12.1%</span></div>
+          </div>
+          <div class="pie-legend-item" style="border-left-color:#CC1B1B">
+            <div class="pie-legend-left"><div class="pie-dot" style="background:#CC1B1B"></div><span class="pie-legend-name">Rejected</span></div>
+            <div><span class="pie-legend-val">87</span> <span class="pie-legend-pct">6.8%</span></div>
+          </div>
+          <div class="pie-legend-item" style="border-left-color:#003087">
+            <div class="pie-legend-left"><div class="pie-dot" style="background:#003087"></div><span class="pie-legend-name">Under Review</span></div>
+            <div><span class="pie-legend-val">55</span> <span class="pie-legend-pct">4.3%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Approvals & Alerts -->
+  <div class="section-title-row"><h2>⚠ Pending Actions &amp; System Alerts</h2></div>
+  <div class="dash-bottom-row">
+
+    <!-- Pending Approvals -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <h3>Pending Approvals</h3>
+        <span class="pending-badge">5 pending</span>
+      </div>
+      <div id="approvalList">
+        <div class="approval-item">
+          <div>
+            <div class="approval-title">156 KYC records awaiting verification</div>
+            <div class="approval-dept">KYC Department · Submitted today</div>
+          </div>
+          <div class="approval-right">
+            <span class="priority-badge pr-high">HIGH</span>
+            <span class="approval-count">156 items</span>
+          </div>
+        </div>
+        <div class="approval-item">
+          <div>
+            <div class="approval-title">87 bills awaiting budget review</div>
+            <div class="approval-dept">Finance Department · 2 days overdue</div>
+          </div>
+          <div class="approval-right">
+            <span class="priority-badge pr-high">HIGH</span>
+            <span class="approval-count">87 items</span>
+          </div>
+        </div>
+        <div class="approval-item">
+          <div>
+            <div class="approval-title">37 field verifications pending</div>
+            <div class="approval-dept">Field Operations · Assigned</div>
+          </div>
+          <div class="approval-right">
+            <span class="priority-badge pr-medium">MEDIUM</span>
+            <span class="approval-count">37 items</span>
+          </div>
+        </div>
+        <div class="approval-item">
+          <div>
+            <div class="approval-title">12 flagged bills need investigation</div>
+            <div class="approval-dept">Finance · Anomaly detected</div>
+          </div>
+          <div class="approval-right">
+            <span class="priority-badge pr-high">HIGH</span>
+            <span class="approval-count">12 items</span>
+          </div>
+        </div>
+        <div class="approval-item">
+          <div>
+            <div class="approval-title">5 new village data submissions</div>
+            <div class="approval-dept">Village Administration · Today</div>
+          </div>
+          <div class="approval-right">
+            <span class="priority-badge pr-low">LOW</span>
+            <span class="approval-count">5 items</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Alerts -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <h3>System Alerts</h3>
+        <span style="color:#C8940A;font-size:1rem">⚠</span>
+      </div>
+      <div class="alert-list">
+        <div class="sys-alert warn">
+          <span class="sys-alert-icon">⚠️</span>
+          <div>
+            <div class="sys-alert-msg">3 villages have not submitted revenue data</div>
+            <div class="sys-alert-time">2 hours ago · Revenue Module</div>
+          </div>
+        </div>
+        <div class="sys-alert error">
+          <span class="sys-alert-icon">🔴</span>
+          <div>
+            <div class="sys-alert-msg">2 bills flagged as over budget limit</div>
+            <div class="sys-alert-time">4 hours ago · Finance Dept</div>
+          </div>
+        </div>
+        <div class="sys-alert info">
+          <span class="sys-alert-icon">ℹ️</span>
+          <div>
+            <div class="sys-alert-msg">PM Awas Yojana deadline: 3 days remaining</div>
+            <div class="sys-alert-time">1 day ago · Scheme Management</div>
+          </div>
+        </div>
+        <div class="sys-alert warn">
+          <span class="sys-alert-icon">⚠️</span>
+          <div>
+            <div class="sys-alert-msg">14 employees offline for more than 24 hrs</div>
+            <div class="sys-alert-time">6 hours ago · Field Operations</div>
+          </div>
+        </div>
+        <div class="sys-alert info">
+          <span class="sys-alert-icon">✅</span>
+          <div>
+            <div class="sys-alert-msg">Monthly revenue report generated successfully</div>
+            <div class="sys-alert-time">Yesterday · Analytics</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Recent Activity -->
+  <div class="section-title-row"><h2>📋 Recent Activity</h2></div>
+  <div class="dash-recent-row">
+
+    <!-- Recent KYC -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <h3>Recent KYC Submissions</h3>
+        <a href="kyc.html" class="view-all-link">View All →</a>
+      </div>
+      <div id="recentKyc">
+        <div class="activity-item">
+          <div class="act-icon">🧾</div>
+          <div class="act-body">
+            <strong>Ramabai Tukaram Jadhav</strong>
+            <span>Shivapur · Aadhaar-based · 15 mins ago</span>
+          </div>
+          <span class="sbadge sbadge-green">Approved</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon">🧾</div>
+          <div class="act-body">
+            <strong>Suresh Narayan Patil</strong>
+            <span>Rampur · Manual · 45 mins ago</span>
+          </div>
+          <span class="sbadge sbadge-yellow">Pending</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon">🧾</div>
+          <div class="act-body">
+            <strong>Lakshmi Bharat Shinde</strong>
+            <span>Bhilgaon · Biometric · 1 hr ago</span>
+          </div>
+          <span class="sbadge sbadge-green">Approved</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon">🧾</div>
+          <div class="act-body">
+            <strong>Mohan Sitaram Kale</strong>
+            <span>Khed · Aadhaar-based · 2 hrs ago</span>
+          </div>
+          <span class="sbadge sbadge-red">Rejected</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon">🧾</div>
+          <div class="act-body">
+            <strong>Anita Vijay Dhotre</strong>
+            <span>Talegaon · Manual · 3 hrs ago</span>
+          </div>
+          <span class="sbadge sbadge-yellow">Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Revenue -->
+    <div class="gov-card">
+      <div class="gov-card-head">
+        <h3>Recent Revenue Entries</h3>
+        <a href="revenue.html" class="view-all-link">View All →</a>
+      </div>
+      <div id="recentRevenue">
+        <div class="activity-item">
+          <div class="act-icon" style="background:#E6F4EA">💰</div>
+          <div class="act-body">
+            <strong>₹1,24,500 — Property Tax</strong>
+            <span>Shivapur · Collected today</span>
+          </div>
+          <span class="sbadge sbadge-green">Paid</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon" style="background:#E6F4EA">💰</div>
+          <div class="act-body">
+            <strong>₹87,200 — Water Charges</strong>
+            <span>Rampur · Collected today</span>
+          </div>
+          <span class="sbadge sbadge-green">Paid</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon" style="background:#FFFBEA">💰</div>
+          <div class="act-body">
+            <strong>₹2,05,000 — Govt Scheme</strong>
+            <span>Bhilgaon · Under review</span>
+          </div>
+          <span class="sbadge sbadge-yellow">Pending</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon" style="background:#E6F4EA">💰</div>
+          <div class="act-body">
+            <strong>₹58,750 — Market Fee</strong>
+            <span>Talegaon · Yesterday</span>
+          </div>
+          <span class="sbadge sbadge-green">Paid</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon" style="background:#FFEBEE">💰</div>
+          <div class="act-body">
+            <strong>₹1,92,000 — Road Levy</strong>
+            <span>Khed · Disputed</span>
+          </div>
+          <span class="sbadge sbadge-red">Disputed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Field Activity Table -->
+  <div class="section-title-row"><h2>🗺 Recent Field Activity</h2></div>
+  <div class="gov-card" style="margin-bottom:1.5rem">
+    <div class="gov-card-head">
+      <div>
+        <h3>Employee Field Logs</h3>
+        <p style="margin:.1rem 0 0;font-size:.72rem;color:var(--gov-muted)">Latest actions submitted from the field</p>
+      </div>
+      <a href="verification.html" class="view-all-link">View All →</a>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="rfa-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Employee</th>
+            <th>Action Performed</th>
+            <th>Location</th>
+            <th>Department</th>
+            <th>Timestamp</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">01</td>
+            <td class="rfa-emp-name">Ramesh Patil</td>
+            <td>Completed field inspection</td>
+            <td class="rfa-location">Shivapur</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Water Supply</td>
+            <td class="rfa-time">30 min ago</td>
+            <td><span class="rfa-success">✓ Success</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">02</td>
+            <td class="rfa-emp-name">Sunita Kale</td>
+            <td>Submitted KYC documents</td>
+            <td class="rfa-location">Rampur</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Administration</td>
+            <td class="rfa-time">1 hour ago</td>
+            <td><span class="rfa-success">✓ Success</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">03</td>
+            <td class="rfa-emp-name">Anil Shinde</td>
+            <td>Updated revenue data entry</td>
+            <td class="rfa-location">Bhilgaon</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Finance</td>
+            <td class="rfa-time">2 hours ago</td>
+            <td><span class="rfa-success">✓ Success</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">04</td>
+            <td class="rfa-emp-name">Priya Jadhav</td>
+            <td>Failed to sync offline data</td>
+            <td class="rfa-location">Khed</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Field Ops</td>
+            <td class="rfa-time">3 hours ago</td>
+            <td><span class="rfa-failed">✗ Failed</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">05</td>
+            <td class="rfa-emp-name">Mahesh Dhotre</td>
+            <td>Completed road condition report</td>
+            <td class="rfa-location">Talegaon</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Infrastructure</td>
+            <td class="rfa-time">4 hours ago</td>
+            <td><span class="rfa-success">✓ Success</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">06</td>
+            <td class="rfa-emp-name">Kavita Deshmukh</td>
+            <td>Health camp attendance upload</td>
+            <td class="rfa-location">Nandgaon</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Health</td>
+            <td class="rfa-time">5 hours ago</td>
+            <td><span class="rfa-pending">⋯ Pending</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--gov-muted);font-size:.75rem;font-weight:600">07</td>
+            <td class="rfa-emp-name">Suresh More</td>
+            <td>School enrolment data submitted</td>
+            <td class="rfa-location">Warvand</td>
+            <td style="color:var(--gov-muted);font-size:.8rem">Education</td>
+            <td class="rfa-time">6 hours ago</td>
+            <td><span class="rfa-success">✓ Success</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ─── CHARTS SCRIPT ─── -->
+<script>
+// ── BAR CHART ──────────────────────────────────────────────────
+const deptLabels = ['Water Supply', 'Health', 'Education', 'Agriculture', 'Roads', 'Electricity'];
+const actualData = [105000, 215000, 130000, 185000, 98000, 162000];
+const targetData = [220000, 150000, 190000, 145000, 175000, 105000];
+const lastYrData = [80000, 110000, 95000, 160000, 85000, 98000];
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: deptLabels,
+    datasets: [
+      {
+        label: 'Actual Collection',
+        data: actualData,
+        backgroundColor: '#3B7DD8',
+        borderRadius: 3,
+        borderSkipped: false,
+      },
+      {
+        label: 'Budget Target',
+        data: targetData,
+        backgroundColor: '#E8593C',
+        borderRadius: 3,
+        borderSkipped: false,
+      },
+      {
+        label: 'Last Year',
+        data: lastYrData,
+        backgroundColor: '#9EB5D6',
+        borderRadius: 3,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.raw;
+            const l = v >= 100000 ? '₹' + (v/100000).toFixed(1) + 'L' : '₹' + (v/1000).toFixed(0) + 'K';
+            return ' ' + ctx.dataset.label + ': ' + l;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: v => v >= 100000 ? '₹' + (v/100000).toFixed(0) + 'L' : '₹' + (v/1000).toFixed(0) + 'K',
+          font: { size: 10, family: "'Noto Sans', sans-serif" },
+          color: '#5A6A82'
+        },
+        grid: { color: '#EEF2F8', lineWidth: 1 },
+        border: { color: '#C8D6E8' }
+      },
+      x: {
+        ticks: {
+          font: { size: 10, family: "'Noto Sans', sans-serif" },
+          color: '#003087',
+          maxRotation: 30
+        },
+        grid: { display: false },
+        border: { color: '#C8D6E8' }
+      }
+    }
+  }
+});
+
+// ── PIE CHART ──────────────────────────────────────────────────
+new Chart(document.getElementById('pieChart'), {
+  type: 'pie',
+  data: {
+    labels: ['Approved', 'Pending', 'Rejected', 'Under Review'],
+    datasets: [{
+      data: [986, 156, 87, 55],
+      backgroundColor: ['#138808', '#C8940A', '#CC1B1B', '#003087'],
+      borderColor: ['#fff','#fff','#fff','#fff'],
+      borderWidth: 2,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+            const pct = ((ctx.raw / total) * 100).toFixed(1);
+            return ' ' + ctx.label + ': ' + ctx.raw + ' (' + pct + '%)';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
